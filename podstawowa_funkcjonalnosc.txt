@@ -1,0 +1,24 @@
+1. Ładowanie poliku IFC do systemu (za pomocą prostego GUI). Plik zawiera dane budynku i sieci sensorów.
+	1.1 w pliku BIM określone miejsca zagrożeń (w Autodesk Revit)
+2. Otrzymanie z systemu pliku IFC z planem ewakuacji, możliwego do wyświetlenia w Autodesk Revit
+(3. W ramach Autodesk Revit określenie miejsc zagrożenia, wciśnięcie przycisku i zobaczenie planu ewakuacji - makra/wtyczka)
+
+Utrzymywanie budynku
+4. Uruchom system, załaduj plik BIM
+5. System łączy się z siecią sensorów (możliwa ręczna realizacja)
+
+6. Aktualizacja pliku BIM
+
+7. Wystawione API do odpytania o drogę ewakuacji z danego miejsca w budynku w danej chwili (wg wiedzy systemu o stanie budynku)
+8. Wystawione API do odpytania o aktualnie odcięte obszary
+	7.1. (opcjonalne) z informacją, czy w odciętym obszarze znajdują się ludzie
+
+
+[kolejny projekt] przewidywanie rozchodzenia się zagrożeń i uwzględnianie ich w planie ewakuacji
+
+
+* Autodesk Revit - przykładowo, może być jakiś inny
+
+Do sprawdzenia:
+- możliwość dodawania własnych elementów do IFC (miejsca zagrożeń, drogi ewakuacji) i wyświetlania ich w Autodesk Revit
+- realizacja połączenia z siecią sensorową w klimek-2019_IIstISR_275716_p.pdf
