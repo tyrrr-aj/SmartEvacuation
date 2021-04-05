@@ -24,7 +24,7 @@ public class EvacSolver {
         this.nVars = formula.getNVars();
     }
 
-    public void solve() throws Exception{
+    public void solve() throws Exception {
         int nClauses = clauses.size();
 
         ISolver solver = SolverFactory.newDefault();
@@ -46,13 +46,13 @@ public class EvacSolver {
                 System.out.println(reversedVars.get(i) + ": " + problem.model(i));
             }
         }
-        else{
+        else {
             System.out.println("Problem is Unsatisfiable!");
         }
     }
 
     public void printEvacPlan() throws Exception{
-        if(!problem.isSatisfiable()){
+        if(!problem.isSatisfiable()) {
             System.out.println("Problem is Unsatisfiable!");
             return;
         }
@@ -60,7 +60,7 @@ public class EvacSolver {
         for (Map.Entry<Integer, Area> entry : formula.getBuilding().getAreas().entrySet()) {
             Integer roomId = entry.getKey();
 
-            if(formula.getBuilding().getAreas().get(roomId).containsExit()) {
+            if(formula.getBuilding().getAreas().get(roomId).isContainsExit()) {
                 continue;
             }
 
@@ -70,7 +70,8 @@ public class EvacSolver {
                 formula.getBuilding().getAreas().get(roomId).setAction("S");
             }
             else {
-                for (Integer neighId : formula.getBuilding().getNeighbours().get(entry.getKey())) {
+                for (var neigh : formula.getBuilding().getNeighbours().get(entry.getKey())) {
+                    var neighId = neigh.getNeighbourId();
                     if(problem.model(vars.get(formula.getVarNameMove(roomId, neighId)))){
                         System.out.println("move to area " + neighId);
                         formula.getBuilding().getAreas().get(roomId).setAction(neighId.toString());

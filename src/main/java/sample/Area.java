@@ -4,17 +4,18 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Area {
+
     private Integer id;
     private boolean isInDanger;
     private boolean containsExit;
     private String action = "E";
-    private List<Integer> neighbours;
+    private List<Neighbour> neighbours;
 
-    public Area(int id, boolean isInDanger, boolean containsExit) {
+    public Area(int id, boolean isInDanger, boolean containsExit, List<Neighbour> neighbours) {
         this.id = id;
         this.isInDanger = isInDanger;
         this.containsExit = containsExit;
-        this.neighbours = new ArrayList<>();
+        this.neighbours = neighbours;
     }
 
     public Integer getId(){
@@ -23,21 +24,17 @@ public class Area {
 
     public boolean isInDanger() { return isInDanger; }
 
-    public boolean containsExit(){
-        return containsExit;
-    }
+    public boolean isContainsExit() { return containsExit; }
 
-    public void setIsInDanger(boolean inDanger)
-    {
-        this.isInDanger = inDanger;
-    }
+    public List<Neighbour> getNeighbours() { return neighbours; }
 
-    public void setContainsExit(boolean containsExit)
-    {
-        this.containsExit = containsExit;
-    }
+    public void setIsInDanger(boolean inDanger) { this.isInDanger = inDanger; }
 
-    public void setAction(String action){ this.action = action; }
+    public void setContainsExit(boolean containsExit) { this.containsExit = containsExit; }
+
+    public void setAction(String action) { this.action = action; }
+
+    public void setNeighbours(List<Neighbour> neighbours) { this.neighbours = neighbours; }
 
     public String getAction(){ return action; }
 

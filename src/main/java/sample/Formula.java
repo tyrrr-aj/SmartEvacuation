@@ -90,15 +90,17 @@ public class Formula {
 
     private void checkNeighbours(){
         for (Map.Entry<Integer, Area> entry : building.getAreas().entrySet()){
-            if(entry.getValue().containsExit()){
+            if(entry.getValue().isContainsExit()){
                 continue;
             }
 
-            for(Integer neighId : building.getNeighbours().get(entry.getKey())){
+            for(var neigh : building.getNeighbours().get(entry.getKey())){
+                var neighId = neigh.getNeighbourId();
                 Integer areaId = entry.getValue().getId();
+
                 Area neighbour = building.getAreas().get(neighId);
 
-                if(neighbour.containsExit()){
+                if(neighbour.isContainsExit()){
                     Integer newVar = addVar(getVarNameMove(areaId, neighId));
                     addClause(new int[] {newVar, vars.get(getVarNameDanger(neighId))});
                     addClause(new int[] {-newVar, -vars.get(getVarNameDanger(neighId))});
@@ -117,19 +119,21 @@ public class Formula {
 
     private void checkConnection(){
         for (Map.Entry<Integer, Area> entry : building.getAreas().entrySet()) {
-            if(entry.getValue().containsExit()){
+            if(entry.getValue().isContainsExit()){
                 continue;
             }
 
             List<int[]> tmpClauses = new ArrayList<>();
 
-            for (Integer neighId : building.getNeighbours().get(entry.getKey())) {
+            for (var neigh : building.getNeighbours().get(entry.getKey())) {
+                var neighId = neigh.getNeighbourId();
+
                 Integer areaId = entry.getValue().getId();
                 Area neighbour = building.getAreas().get(neighId);
 
                 addVar(getVarNameConn(neighbour.getId()));
                 addVar(getVarNameConn(areaId));
-                if(neighbour.containsExit()){
+                if(neighbour.isContainsExit()){
                     tmpClauses.add(new int[] {vars.get(getVarNameMove(areaId, neighId))});
                     addClause(new int[] {-vars.get(getVarNameMove(areaId, neighId)), vars.get(getVarNameConn(areaId))});
                 }
@@ -162,16 +166,17 @@ public class Formula {
 
     private void preferMovement(){
         for (Map.Entry<Integer, Area> entry : building.getAreas().entrySet()) {
-            if(entry.getValue().containsExit()){
+            if(entry.getValue().isContainsExit()){
                 continue;
             }
 
-            for (Integer neighId : building.getNeighbours().get(entry.getKey())) {
+            for (var neigh : building.getNeighbours().get(entry.getKey())) {
+                var neighId = neigh.getNeighbourId();
                 Integer areaId = entry.getValue().getId();
                 Area neighbour = building.getAreas().get(neighId);
 
                 addVar(getVarNameStay(areaId));
-                if(neighbour.containsExit()){
+                if(neighbour.isContainsExit()){
                     addClause(new int[] {-vars.get(getVarNameStay(areaId)), vars.get(getVarNameDanger(neighId))});
                 }
                 else{
@@ -183,7 +188,7 @@ public class Formula {
 
     private void makeUnambiguous() {
         for (Map.Entry<Integer, Area> entry : building.getAreas().entrySet()) {
-            if (entry.getValue().containsExit()) {
+            if (entry.getValue().isContainsExit()) {
                 continue;
             }
 
@@ -192,9 +197,9 @@ public class Formula {
             lastFormula.add(vars.get(getVarNameStay(areaId)));
 
             for (int i = 0; i < building.getNeighbours().get(entry.getKey()).size(); i++) {
-                Integer neighId = building.getNeighbours().get(entry.getKey()).get(i);
+                Integer neighId = building.getNeighbours().get(entry.getKey()).get(i).getNeighbourId();
                 for (int j = i + 1; j < building.getNeighbours().get(entry.getKey()).size(); j++) {
-                    Integer neigh2Id = building.getNeighbours().get(entry.getKey()).get(j);
+                    Integer neigh2Id = building.getNeighbours().get(entry.getKey()).get(j).getNeighbourId();
                     if (neighId != neigh2Id) {
                         addClause(new int[]{-vars.get(getVarNameMove(areaId, neighId)), -vars.get(getVarNameMove(areaId, neigh2Id))});
                     }

@@ -26,7 +26,7 @@ import java.util.Map;
 
 public class EscapeApp extends Application {
 
-    Building building = BuildingGenerator.getAppBuilding();
+    Building building = BuildingGenerator.getSmallBuilding();
     private Formula formula;
     private EvacSolver evacSolver;
 
@@ -97,7 +97,7 @@ public class EscapeApp extends Application {
         for(int i = 0; i < building.getBuildingSize(); i++){
             labelVars.get(i).setText(allActions.get(i).get(building.getAreas().get(i).getAction()));
 
-            if(!building.getAreas().get(i).isInDanger() && !building.getAreas().get(i).containsExit()) {
+            if(!building.getAreas().get(i).isInDanger() && !building.getAreas().get(i).isContainsExit()) {
                 labelVars.get(i).setTextFill(Color.web("#000000", 1));
             }
         }
@@ -218,15 +218,18 @@ public class EscapeApp extends Application {
 
     @Override
     public void start(Stage stage) throws Exception {
-        Building tiny_b = BuildingGenerator.getSmallBuilding();
-        Formula form_b = new Formula(tiny_b);
+        Formula form_b = new Formula(building);
         form_b.generate();
+
         EvacSolver evac = new EvacSolver(form_b);
         evac.solve();
         evac.printSolution();
+        System.out.println("START EVACUATION PLAN");
+        evac.printEvacPlan();
+        System.out.println("END EVACUATION PLAN");
 
-        tiny_b.updateArea(1, true, false);
-        form_b = new Formula(tiny_b);
+        building.updateArea(1, true, false);
+        form_b = new Formula(building);
         form_b.generate();
         evac = new EvacSolver(form_b);
         evac.solve();
