@@ -3,6 +3,8 @@ package sample.ui;
 import javafx.application.Application;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.geometry.HPos;
+import javafx.geometry.Pos;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
@@ -13,6 +15,7 @@ import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.RowConstraints;
 import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
 import javafx.stage.Stage;
 import sample.*;
 
@@ -26,9 +29,6 @@ public class EscapeApp extends Application {
     Building building = BuildingGenerator.getAppBuilding();
     private Formula formula;
     private EvacSolver evacSolver;
-
-    @FXML
-    private Label area0Label, area1Label, area2Label, area3Label, area4Label, area5Label, area6Label, area7Label, area8Label, area9Label, area10Label, area11Label, area12Label, area13Label, area14Label, area15Label, area16Label, area17Label, area18Label, area19Label, area20Label, area21Label, area22Label, area23Label, area24Label, area25Label, area26Label, area27Label;
 
     private List<Map<String, String>> allActions = new ArrayList<>();
     private Map<Integer, Label> labelVars = new HashMap<>();
@@ -63,41 +63,41 @@ public class EscapeApp extends Application {
         allActions.add(Map.of("21", "↑", "S", "S"));
         allActions.add(Map.of("22", "↑", "S", "S"));
 
-        labelVars.put(0, area0Label);
-        labelVars.put(1, area1Label);
-        labelVars.put(2, area2Label);
-        labelVars.put(3, area3Label);
-        labelVars.put(4, area4Label);
-        labelVars.put(5, area5Label);
-        labelVars.put(6, area6Label);
-        labelVars.put(7, area7Label);
-        labelVars.put(8, area8Label);
-        labelVars.put(9, area9Label);
-        labelVars.put(10, area10Label);
-        labelVars.put(11, area11Label);
-        labelVars.put(12, area12Label);
-        labelVars.put(13, area13Label);
-        labelVars.put(14, area14Label);
-        labelVars.put(15, area15Label);
-        labelVars.put(16, area16Label);
-        labelVars.put(17, area17Label);
-        labelVars.put(18, area18Label);
-        labelVars.put(19, area19Label);
-        labelVars.put(20, area20Label);
-        labelVars.put(21, area21Label);
-        labelVars.put(22, area22Label);
-        labelVars.put(23, area23Label);
-        labelVars.put(24, area24Label);
-        labelVars.put(25, area25Label);
-        labelVars.put(26, area26Label);
-        labelVars.put(27, area27Label);
+//        labelVars.put(0, area0Label);
+//        labelVars.put(1, area1Label);
+//        labelVars.put(2, area2Label);
+//        labelVars.put(3, area3Label);
+//        labelVars.put(4, area4Label);
+//        labelVars.put(5, area5Label);
+//        labelVars.put(6, area6Label);
+//        labelVars.put(7, area7Label);
+//        labelVars.put(8, area8Label);
+//        labelVars.put(9, area9Label);
+//        labelVars.put(10, area10Label);
+//        labelVars.put(11, area11Label);
+//        labelVars.put(12, area12Label);
+//        labelVars.put(13, area13Label);
+//        labelVars.put(14, area14Label);
+//        labelVars.put(15, area15Label);
+//        labelVars.put(16, area16Label);
+//        labelVars.put(17, area17Label);
+//        labelVars.put(18, area18Label);
+//        labelVars.put(19, area19Label);
+//        labelVars.put(20, area20Label);
+//        labelVars.put(21, area21Label);
+//        labelVars.put(22, area22Label);
+//        labelVars.put(23, area23Label);
+//        labelVars.put(24, area24Label);
+//        labelVars.put(25, area25Label);
+//        labelVars.put(26, area26Label);
+//        labelVars.put(27, area27Label);
      }
 
     private void setSigns(){
-        for(int i=0; i<28; i++){
+        for(int i = 0; i < building.getBuildingSize(); i++){
             labelVars.get(i).setText(allActions.get(i).get(building.getAreas().get(i).getAction()));
 
-            if(building.getAreas().get(i).isInDanger() != 1 && !building.getAreas().get(i).containsExit()) {
+            if(!building.getAreas().get(i).isInDanger() && !building.getAreas().get(i).containsExit()) {
                 labelVars.get(i).setTextFill(Color.web("#000000", 1));
             }
         }
@@ -129,7 +129,7 @@ public class EscapeApp extends Application {
         Integer clickedId = Integer.parseInt(event.getPickResult().getIntersectedNode().getId().split("_")[1]);
         String labelVar = "area" + clickedId + "Label";
 
-        if(building.getAreas().get(clickedId).isInDanger() == 1){
+        if(building.getAreas().get(clickedId).isInDanger()){
             labelVars.get(clickedId).setTextFill(Color.web("#000000", 1));
             building.getAreas().get(clickedId).setIsInDanger(false);
             System.out.println(clickedId + " - no danger");
@@ -151,6 +151,7 @@ public class EscapeApp extends Application {
 
     public void initRooms(Scene scene) {
         GridPane gridPane = (GridPane) scene.lookup("#grid");
+
         int numberOfColumns = 6;
         int numberOfRows = 6;
         for(int i = 0; i < numberOfColumns; i++) {
@@ -193,6 +194,18 @@ public class EscapeApp extends Application {
         addRoom(gridPane, "/rooms/room20.png",5, 4);
     }
 
+    public void addRoomLabel(GridPane gridPane, int columnIndex, int rowIndex) {
+        var roomId = columnIndex + String.valueOf(rowIndex);
+        Label label = new Label(roomId);
+        label.setId(roomId);
+
+        Font font = new Font(16);
+        label.setFont(font);
+
+        gridPane.add(label, columnIndex, rowIndex);
+        GridPane.setHalignment(label, HPos.CENTER);
+    }
+
     public void addRoom(GridPane gridPane, String imageURL, int columnIndex, int rowIndex) {
         Image image = new Image(imageURL);
         ImageView imageView = new ImageView();
@@ -200,6 +213,7 @@ public class EscapeApp extends Application {
         imageView.setPickOnBounds(true);
         imageView.setImage(image);
         gridPane.add(imageView, columnIndex, rowIndex);
+        addRoomLabel(gridPane, columnIndex, rowIndex);
     }
 
     @Override
@@ -227,6 +241,7 @@ public class EscapeApp extends Application {
         stage.setResizable(false);
         stage.show();
         initRooms(scene);
+        building.print();
     }
 
     public static void main(String[] args) {

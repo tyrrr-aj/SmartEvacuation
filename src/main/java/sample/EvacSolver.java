@@ -60,19 +60,19 @@ public class EvacSolver {
         for (Map.Entry<Integer, Area> entry : formula.getBuilding().getAreas().entrySet()) {
             Integer roomId = entry.getKey();
 
-            if(formula.getBuilding().getAreas().get(roomId).containsExit()){
+            if(formula.getBuilding().getAreas().get(roomId).containsExit()) {
                 continue;
             }
 
-            System.out.print("Area "+roomId+": ");
-            if(problem.model(vars.get(formula.getVarNameStay(roomId)))){
+            System.out.print("Area " + roomId + ": ");
+            if(problem.model(vars.get(formula.getVarNameStay(roomId)))) {
                 System.out.println("stay");
                 formula.getBuilding().getAreas().get(roomId).setAction("S");
             }
-            else{
+            else {
                 for (Integer neighId : formula.getBuilding().getNeighbours().get(entry.getKey())) {
                     if(problem.model(vars.get(formula.getVarNameMove(roomId, neighId)))){
-                        System.out.println("move to area "+neighId);
+                        System.out.println("move to area " + neighId);
                         formula.getBuilding().getAreas().get(roomId).setAction(neighId.toString());
                     }
                 }

@@ -18,6 +18,10 @@ public class Building {
         return areas;
     }
 
+    public Integer getBuildingSize() {
+        return buildingSize;
+    }
+
     public void addArea(boolean isInDanger, boolean containsExit){
         areas.put(buildingSize, new Area(buildingSize, isInDanger, containsExit));
         buildingSize++;
@@ -43,7 +47,7 @@ public class Building {
         }
     }
 
-    private void updateConnections(Integer area1, Integer area2){
+    private void updateConnections(Integer area1, Integer area2) {
         List<Integer> updated;
         if(neighbours.containsKey(area1)){
             updated = neighbours.get(area1);
@@ -55,7 +59,7 @@ public class Building {
         neighbours.put(area1, updated);
     }
 
-    private void updateRemoveConnections(Integer area1, Integer area2){
+    private void updateRemoveConnections(Integer area1, Integer area2) {
         List<Integer> updated;
 
         updated = neighbours.get(area1);
@@ -64,17 +68,17 @@ public class Building {
         }
 
 
-    public void createConnection(Integer area1, Integer area2){
+    public void createConnection(Integer area1, Integer area2) {
         updateConnections(area1, area2);
         updateConnections(area2, area1);
     }
 
-    public void removeConnection(Integer area1, Integer area2){
+    public void removeConnection(Integer area1, Integer area2) {
         updateRemoveConnections(area1, area2);
         updateRemoveConnections(area2, area1);
     }
 
-    public void print(){
+    public void print() {
         System.out.println("Areas: ");
         for (Map.Entry<Integer, Area> entry : areas.entrySet())
         {

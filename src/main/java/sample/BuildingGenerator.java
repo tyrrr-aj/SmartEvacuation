@@ -35,8 +35,6 @@ public class BuildingGenerator {
         building.createConnection(7, 3);
         building.createConnection(7, 8);
         building.createConnection(3, 9);
-        building.createConnection(3, 4);
-        building.removeArea(4);
 
         return building;
     }
