@@ -7,20 +7,13 @@ public class Building {
     private Map<Integer, List<Neighbour>> neighbours = new HashMap<>();
     private Integer buildingSize = 0;
 
-    public Building(){
-    }
+    public Building() {}
 
-    public Map<Integer, List<Neighbour>> getNeighbours(){
-        return neighbours;
-    }
+    public Map<Integer, List<Neighbour>> getNeighbours() { return neighbours; }
 
-    public Map<Integer, Area> getAreas(){
-        return areas;
-    }
+    public Map<Integer, Area> getAreas() { return areas; }
 
-    public Integer getBuildingSize() {
-        return buildingSize;
-    }
+    public Integer getBuildingSize() { return buildingSize; }
 
     public void addArea(boolean isInDanger, boolean containsExit){
         areas.put(buildingSize, new Area(buildingSize, isInDanger, containsExit, null));

@@ -4,7 +4,6 @@ import javafx.application.Application;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.HPos;
-import javafx.geometry.Pos;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
@@ -26,14 +25,15 @@ import java.util.Map;
 
 public class EscapeApp extends Application {
 
-    Building building = BuildingGenerator.getSmallBuilding();
+    Building building = BuildingGenerator.getSmallBuilding4();
     private Formula formula;
     private EvacSolver evacSolver;
 
     private List<Map<String, String>> allActions = new ArrayList<>();
     private Map<Integer, Label> labelVars = new HashMap<>();
 
-    private void initSigns(){
+    private void initSigns() {
+        // Todo use Map.ofEntries and create it automatically
         allActions.add(Map.of("1", "→", "S", "S"));
         allActions.add(Map.of("E", "↑"));
         allActions.add(Map.of("1", "←", "S", "S"));
@@ -149,55 +149,92 @@ public class EscapeApp extends Application {
 //        generateFormula();
     }
 
+    private int startColumn = 0;
+    private int startRow = 0;
+
+    public void printConnectedRooms(Scene scene, int roomId) {
+        GridPane gridPane = (GridPane) scene.lookup("#grid");
+
+        int roomColumnIndex = this.startColumn;
+        int roomRowIndex = this.startRow;
+
+        try {
+            ImageView roomImage = (ImageView) scene.lookup("#room-" + roomId);
+            roomColumnIndex = GridPane.getColumnIndex(roomImage);
+            roomRowIndex = GridPane.getRowIndex(roomImage);
+        } catch (Exception e) {
+            addRoom(gridPane, "/rooms/room0.png", roomColumnIndex, roomRowIndex, roomId);
+        }
+        var neighbours = building.getNeighbours().get(roomId);
+
+        for (var neighbour : neighbours) {
+            try {
+                ImageView roomImage = (ImageView) scene.lookup("#room-" + roomId);
+                roomColumnIndex = GridPane.getColumnIndex(roomImage);
+                roomRowIndex = GridPane.getRowIndex(roomImage);
+            } catch (Exception exc) {}
+
+            try {
+                // continue if room exists
+                ImageView imageView = (ImageView) scene.lookup("#room-" + neighbour.getNeighbourId());
+                imageView.getImage();
+            } catch (Exception ex) {
+                switch (neighbour.getNeighboursConnection()) {
+                    case BOTTOM:
+                        roomRowIndex += 1;
+                        break;
+                    case TOP:
+                        roomRowIndex -= 1;
+                        break;
+                    case RIGHT:
+                        roomColumnIndex += 1;
+                        break;
+                    case LEFT:
+                        roomColumnIndex -= 1;
+                        break;
+                    default:
+                        break;
+                }
+
+                try {
+                    addRoom(gridPane, "/rooms/room0.png", roomColumnIndex, roomRowIndex, neighbour.getNeighbourId());
+                    printConnectedRooms(scene, neighbour.getNeighbourId());
+                } catch (Exception e) {
+                    if(roomRowIndex < 0) {
+                        this.startRow++;
+                        gridPane.getChildren().clear();
+                        printConnectedRooms(scene, 0);
+                    }
+                    if(roomColumnIndex < 0) {
+                        this.startColumn++;
+                        gridPane.getChildren().clear();
+                        printConnectedRooms(scene, 0);
+                    }
+                }
+            }
+        }
+    }
+
     public void initRooms(Scene scene) {
         GridPane gridPane = (GridPane) scene.lookup("#grid");
 
-        int numberOfColumns = 6;
-        int numberOfRows = 6;
-        for(int i = 0; i < numberOfColumns; i++) {
-            ColumnConstraints column = new ColumnConstraints(80);
-            gridPane.getColumnConstraints().add(column);
+        // Todo make it automatically
+
+        ColumnConstraints column = new ColumnConstraints(80);
+        gridPane.getColumnConstraints().add(column);
+
+
+        RowConstraints row = new RowConstraints(80);
+        gridPane.getRowConstraints().add(row);
+
+        for (var roomId : building.getAreas().keySet()) {
+            printConnectedRooms(scene, roomId);
         }
-
-        for(int i = 0; i < numberOfRows; i++) {
-            RowConstraints row = new RowConstraints(80);
-            gridPane.getRowConstraints().add(row);
-        }
-
-        addRoom(gridPane, "/rooms/room1.png", 0, 0);
-        addRoom(gridPane, "/rooms/room2.png", 1, 0);
-        addRoom(gridPane, "/rooms/room3.png", 2, 0);
-
-        addRoom(gridPane, "/rooms/room1.png", 0, 1);
-        addRoom(gridPane, "/rooms/room16.png",1, 1);
-        addRoom(gridPane, "/rooms/room3.png", 2, 1);
-
-        addRoom(gridPane, "/rooms/room6.png", 0, 2);
-        addRoom(gridPane, "/rooms/room16.png",1, 2);
-        addRoom(gridPane, "/rooms/room13.png",2, 2);
-        addRoom(gridPane, "/rooms/room13.png",3, 2);
-        addRoom(gridPane, "/rooms/room2.png", 4, 2);
-        addRoom(gridPane, "/rooms/room13.png",5, 2);
-
-        addRoom(gridPane, "/rooms/room7.png", 0, 3);
-        addRoom(gridPane, "/rooms/room16.png",1, 3);
-        addRoom(gridPane, "/rooms/room16.png",2, 3);
-        addRoom(gridPane, "/rooms/room16.png",3, 3);
-        addRoom(gridPane, "/rooms/room16.png",4, 3);
-        addRoom(gridPane, "/rooms/room19.png",5, 3);
-
-        addRoom(gridPane, "/rooms/room1.png", 0, 4);
-        addRoom(gridPane, "/rooms/room8.png", 1, 4);
-        addRoom(gridPane, "/rooms/room20.png",2, 4);
-        addRoom(gridPane, "/rooms/room20.png",3, 4);
-        addRoom(gridPane, "/rooms/room20.png",4, 4);
-        addRoom(gridPane, "/rooms/room20.png",5, 4);
     }
 
-    public void addRoomLabel(GridPane gridPane, int columnIndex, int rowIndex) {
-        var roomId = columnIndex + String.valueOf(rowIndex);
-        Label label = new Label(roomId);
-        label.setId(roomId);
+    public void addRoomLabel(GridPane gridPane, int columnIndex, int rowIndex, int roomId) {
+        Label label = new Label(String.valueOf(roomId));
+        label.setId(String.valueOf(roomId));
 
         Font font = new Font(16);
         label.setFont(font);
@@ -206,14 +243,15 @@ public class EscapeApp extends Application {
         GridPane.setHalignment(label, HPos.CENTER);
     }
 
-    public void addRoom(GridPane gridPane, String imageURL, int columnIndex, int rowIndex) {
+    public void addRoom(GridPane gridPane, String imageURL, int columnIndex, int rowIndex, int roomId) {
         Image image = new Image(imageURL);
         ImageView imageView = new ImageView();
         imageView.setSmooth(true);
         imageView.setPickOnBounds(true);
+        imageView.setId("room-" + roomId);
         imageView.setImage(image);
         gridPane.add(imageView, columnIndex, rowIndex);
-        addRoomLabel(gridPane, columnIndex, rowIndex);
+        addRoomLabel(gridPane, columnIndex, rowIndex, roomId);
     }
 
     @Override
@@ -224,9 +262,6 @@ public class EscapeApp extends Application {
         EvacSolver evac = new EvacSolver(form_b);
         evac.solve();
         evac.printSolution();
-        System.out.println("START EVACUATION PLAN");
-        evac.printEvacPlan();
-        System.out.println("END EVACUATION PLAN");
 
         building.updateArea(1, true, false);
         form_b = new Formula(building);
