@@ -11,8 +11,11 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.RowConstraints;
+import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import sample.models.Building;
+import sample.solver.EvacuationSolver;
+import sample.solver.Formula;
 
 public class BuildingCreator {
     private Scene scene;
@@ -25,9 +28,10 @@ public class BuildingCreator {
         this.building = building;
     }
 
-    public void init() {
+    public void init() throws Exception {
         createScene();
         createResetButton();
+        generateNewEvacuationPlan();
     }
 
     private void createScene() {
@@ -71,7 +75,7 @@ public class BuildingCreator {
         imageView.addEventHandler(MouseEvent.MOUSE_CLICKED, event -> {
             try {
                 System.out.println("TOGGLE DANGER");
-//                toggleDanger(scene, event);
+                toggleDanger(event);
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -83,6 +87,23 @@ public class BuildingCreator {
         imageView.setImage(image);
         gridPane.add(imageView, columnIndex, rowIndex);
         addRoomLabel(gridPane, columnIndex, rowIndex, roomId);
+    }
+
+    private void toggleDanger(MouseEvent event) throws Exception {
+        Integer clickedId = Integer.parseInt(event.getPickResult().getIntersectedNode().getId().split("-")[1]);
+        Label label = (Label) scene.lookup("#label-" + clickedId);
+
+        if(building.getAreas().get(clickedId).isInDanger()){
+            label.setTextFill(Color.web("#000000", 1));
+            building.getAreas().get(clickedId).setIsInDanger(false);
+            System.out.println(clickedId + " - no danger");
+        } else{
+            label.setTextFill(Color.web("#ff0000", 1));
+            building.getAreas().get(clickedId).setIsInDanger(true);
+            System.out.println(clickedId + " - danger");
+        }
+
+        generateNewEvacuationPlan();
     }
 
     private void addRoomLabel(GridPane gridPane, int columnIndex, int rowIndex, int roomId) {
@@ -147,12 +168,31 @@ public class BuildingCreator {
         button.addEventHandler(MouseEvent.MOUSE_CLICKED, event -> {
             try {
                 System.out.println("RESET");
-//                reset(sceme);
+                reset();
             } catch (Exception e) {
                 e.printStackTrace();
             }
             event.consume();
         });
         buttonBar.getButtons().addAll(button);
+    }
+
+    private void reset() throws Exception {
+        for(int i = 0; i < building.getAreas().size(); i++) {
+            building.getAreas().get(i).setIsInDanger(false);
+        }
+        generateNewEvacuationPlan();
+    }
+
+    private void generateNewEvacuationPlan() throws Exception {
+
+        Formula formula = new Formula(building);
+        formula.generate();
+
+        EvacuationSolver evacuationSolver = new EvacuationSolver(formula);
+        evacuationSolver.solve();
+
+        EvacuationPathCreator evacuationPathCreator = new EvacuationPathCreator(scene, formula, evacuationSolver, building);
+        evacuationPathCreator.init();
     }
 }
