@@ -1,6 +1,5 @@
-package sample;
+package sample.models;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class Area {
@@ -8,7 +7,7 @@ public class Area {
     private Integer id;
     private boolean isInDanger;
     private boolean containsExit;
-    private Neighbour.NeighboursConnection exitDirection;
+    private ConnectionDirection exitDirection;
     private String action = "E";
     private List<Neighbour> neighbours;
 
@@ -19,7 +18,7 @@ public class Area {
         this.neighbours = neighbours;
     }
 
-    public Area(int id, boolean isInDanger, Neighbour.NeighboursConnection exitDirection, List<Neighbour> neighbours) {
+    public Area(int id, boolean isInDanger, ConnectionDirection exitDirection, List<Neighbour> neighbours) {
         this.id = id;
         this.isInDanger = isInDanger;
         this.containsExit = true;
@@ -35,7 +34,7 @@ public class Area {
 
     public boolean isContainsExit() { return containsExit; }
 
-    public Neighbour.NeighboursConnection getExitDirection() { return exitDirection; }
+    public ConnectionDirection getExitDirection() { return exitDirection; }
 
     public List<Neighbour> getNeighbours() { return neighbours; }
 
@@ -44,8 +43,6 @@ public class Area {
     public void setContainsExit(boolean containsExit) { this.containsExit = containsExit; }
 
     public void setAction(String action) { this.action = action; }
-
-    public void setNeighbours(List<Neighbour> neighbours) { this.neighbours = neighbours; }
 
     public String getAction(){ return action; }
 

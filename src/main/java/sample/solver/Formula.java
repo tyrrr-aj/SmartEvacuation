@@ -1,4 +1,7 @@
-package sample;
+package sample.solver;
+
+import sample.models.Area;
+import sample.models.Building;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -98,10 +101,6 @@ public class Formula {
                 var neighId = neigh.getNeighbourId();
                 Integer areaId = entry.getValue().getId();
 
-                if(neighId == -1) {
-                    continue;
-                }
-
                 Area neighbour = building.getAreas().get(neighId);
 
                 if(neighbour.isContainsExit()){
@@ -131,10 +130,6 @@ public class Formula {
 
             for (var neigh : building.getNeighbours().get(entry.getKey())) {
                 var neighId = neigh.getNeighbourId();
-
-                if(neighId == -1) {
-                    continue;
-                }
 
                 Integer areaId = entry.getValue().getId();
                 Area neighbour = building.getAreas().get(neighId);
@@ -180,9 +175,7 @@ public class Formula {
 
             for (var neigh : building.getNeighbours().get(entry.getKey())) {
                 var neighId = neigh.getNeighbourId();
-                if(neighId == -1) {
-                    continue;
-                }
+
                 Integer areaId = entry.getValue().getId();
                 Area neighbour = building.getAreas().get(neighId);
 
@@ -209,9 +202,7 @@ public class Formula {
 
             for (int i = 0; i < building.getNeighbours().get(entry.getKey()).size(); i++) {
                 Integer neighId = building.getNeighbours().get(entry.getKey()).get(i).getNeighbourId();
-                if(neighId == -1) {
 
-                }
                 for (int j = i + 1; j < building.getNeighbours().get(entry.getKey()).size(); j++) {
                     Integer neigh2Id = building.getNeighbours().get(entry.getKey()).get(j).getNeighbourId();
                     if (neighId != neigh2Id) {

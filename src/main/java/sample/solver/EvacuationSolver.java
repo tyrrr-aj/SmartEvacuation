@@ -1,14 +1,15 @@
-package sample;
+package sample.solver;
 
 import org.sat4j.core.VecInt;
 import org.sat4j.minisat.SolverFactory;
 import org.sat4j.specs.IProblem;
 import org.sat4j.specs.ISolver;
+import sample.models.Area;
 
 import java.util.List;
 import java.util.Map;
 
-public class EvacSolver {
+public class EvacuationSolver {
     private Formula formula;
     private List<int []> clauses;
     private Map<String, Integer> vars;
@@ -16,7 +17,7 @@ public class EvacSolver {
     private Integer nVars;
     private IProblem problem;
 
-    public EvacSolver(Formula formula) {
+    public EvacuationSolver(Formula formula) {
         this.formula = formula;
         this.clauses = formula.getClauses();
         this.vars = formula.getVars();
@@ -51,7 +52,7 @@ public class EvacSolver {
         }
     }
 
-    public void printEvacPlan() throws Exception{
+    public void printEvacuationPlan() throws Exception{
         if(!problem.isSatisfiable()) {
             System.out.println("Problem is Unsatisfiable!");
             return;
