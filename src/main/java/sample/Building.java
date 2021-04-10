@@ -15,8 +15,13 @@ public class Building {
 
     public Integer getBuildingSize() { return buildingSize; }
 
-    public void addArea(boolean isInDanger, boolean containsExit){
-        areas.put(buildingSize, new Area(buildingSize, isInDanger, containsExit, null));
+    public void addArea(boolean isInDanger){
+        areas.put(buildingSize, new Area(buildingSize, isInDanger, null));
+        buildingSize++;
+    }
+
+    public void addArea(boolean isInDanger, Neighbour.NeighboursConnection exitDirection){
+        areas.put(buildingSize, new Area(buildingSize, isInDanger, exitDirection, null));
         buildingSize++;
     }
 

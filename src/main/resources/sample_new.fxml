@@ -4,9 +4,7 @@
 <?import javafx.scene.control.ButtonBar?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.layout.AnchorPane?>
-<?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
-<?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.text.Font?>
 
 <?import javafx.scene.layout.VBox?>
@@ -27,9 +25,6 @@
       <GridPane id="grid" layoutX="80" layoutY="160" prefHeight="400.0" prefWidth="640.0">
       </GridPane>
    </children>
-   <ButtonBar prefHeight="55.0" prefWidth="290.0" AnchorPane.bottomAnchor="5.0" AnchorPane.rightAnchor="15.0">
-      <buttons>
-         <Button mnemonicParsing="false" onAction="#reset" text="Reset" />
-      </buttons>
+   <ButtonBar id="buttons" prefHeight="55.0" prefWidth="290.0" AnchorPane.bottomAnchor="5.0" AnchorPane.rightAnchor="15.0">
    </ButtonBar>
 </AnchorPane>

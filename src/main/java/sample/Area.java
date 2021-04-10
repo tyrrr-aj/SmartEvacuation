@@ -8,13 +8,22 @@ public class Area {
     private Integer id;
     private boolean isInDanger;
     private boolean containsExit;
+    private Neighbour.NeighboursConnection exitDirection;
     private String action = "E";
     private List<Neighbour> neighbours;
 
-    public Area(int id, boolean isInDanger, boolean containsExit, List<Neighbour> neighbours) {
+    public Area(int id, boolean isInDanger, List<Neighbour> neighbours) {
         this.id = id;
         this.isInDanger = isInDanger;
-        this.containsExit = containsExit;
+        this.containsExit = false;
+        this.neighbours = neighbours;
+    }
+
+    public Area(int id, boolean isInDanger, Neighbour.NeighboursConnection exitDirection, List<Neighbour> neighbours) {
+        this.id = id;
+        this.isInDanger = isInDanger;
+        this.containsExit = true;
+        this.exitDirection = exitDirection;
         this.neighbours = neighbours;
     }
 
@@ -25,6 +34,8 @@ public class Area {
     public boolean isInDanger() { return isInDanger; }
 
     public boolean isContainsExit() { return containsExit; }
+
+    public Neighbour.NeighboursConnection getExitDirection() { return exitDirection; }
 
     public List<Neighbour> getNeighbours() { return neighbours; }
 
