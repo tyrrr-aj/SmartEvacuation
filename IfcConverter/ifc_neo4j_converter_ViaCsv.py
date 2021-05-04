@@ -45,8 +45,8 @@ ifc_path = "ifc_files/231110AC11-Institute-Var-2-IFC.ifc"
 # neo4j root path
 ####################################################
 
-path_ne4j_root = 'C:/Users/adams/.Neo4jDesktop/relate-data/dbmss/dbms-302c3856-1f2c-4e22-98ac-2a09f093e1ef'
-
+# path_ne4j_root = 'C:/Users/adams/.Neo4jDesktop/relate-data/dbmss/dbms-302c3856-1f2c-4e22-98ac-2a09f093e1ef'
+path_ne4j_root = '/Users/Grzegorz/Library/Application Support/Neo4j Desktop/Application/relate-data/dbmss/dbms-06ce48b3-cf64-43c5-bf0e-44066308ae03'
 ####################################################
 # Nodes and Edges list create
 ####################################################
@@ -171,10 +171,11 @@ if os.name == 'nt':
     line_break = '^'
     additional_action = None
     run_cmd = lambda path: subprocess.run([path])
+
 elif os.name == 'posix':
     file_extension = 'sh'
     line_break = '\\'
-    additional_action = lambda path: os.chmod(path, stat.S_IEXEC)
+    additional_action = lambda path: os.chmod(path, 0o777)
     run_cmd = lambda path: subprocess.run([path])
 else:
     print('WARNING: Operating system not recognized; generic import command will be generated to .txt file but NO IMPORT SCRIPTS WILL BE RUN')
@@ -190,8 +191,8 @@ with open(full_path, mode="w") as f:
     f.write('cd ' + path_ne4j_root + '/bin/\n')
     f.write('neo4j-admin import ' + line_break + '\n')
     for s_cls in cls_list:
-        f.write(" --nodes=importer_csv\\" + s_cls + ".csv" + line_break + '\n')
-    f.write(" --relationships=importer_csv\\Edges.csv")
+        f.write(" --nodes=" + os.path.join("importer_csv", s_cls + ".csv") + " " + line_break + '\n')
+    f.write(" --relationships=" + os.path.join("importer_csv", "Edges.csv"))
 
 ####################################################
 # log
