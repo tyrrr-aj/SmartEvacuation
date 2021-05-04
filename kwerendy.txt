@@ -1,0 +1,22 @@
+Wydobycie połączonych przestrzeni:
+	MATCH (s1:IfcSpace)--(b1:IfcRelSpaceBoundary)--(d:IfcDoor)--(b2:IfcRelSpaceBoundary)--(s2:IfcSpace)
+	CALL apoc.create.vRelationship(s1,'IS_CONNECTED',{},s2) YIELD rel
+	RETURN s1, rel, s2
+
+Pomieszczenia z wyjściem:
+	MATCH (s:IfcSpace)--(:IfcRelSpaceBoundary)--(:IfcDoor)--(:IfcRelDefinesByProperties)--(:IfcPropertySet {Name:'Pset_DoorCommon'})--(e:IfcPropertySingleValue {Name:'IsExternal', NominalValue:'True'})
+	RETURN s
+
+Pomieszczenia połączone bez ściany (np. połączenia między piętrami):
+	MATCH (s1:IfcSpace)--(:IfcRelSpaceBoundary {PhysicalOrVirtualBoundary:'VIRTUAL'})--(:IfcVirtualElement)--(:IfcRelSpaceBoundary)--(s2:IfcSpace)
+	CALL apoc.create.vRelationship(s1,'CONNECT_LEVELS',{},s2) YIELD rel
+	RETURN s1, rel, s2
+
+Przypisanie piętra (dokładniej - wysokości nad ziemią, nie numer piętra):
+	MATCH (s:IfcSpace)--(:IfcRelAggregates)--(storey:IfcBuildingStorey)
+	RETURN s, storey.Elevation
+
+Połączone przestrzenie wraz z piętrami:
+	MATCH (s1:IfcSpace)--(b1:IfcRelSpaceBoundary)--(:IfcDoor)--(b2:IfcRelSpaceBoundary)--(s2:IfcSpace)--(:IfcRelAggregates)--(storey:IfcBuildingStorey)
+	CALL apoc.create.vRelationship(s1,'IS_CONNECTED',{},s2) YIELD rel
+	RETURN s1, rel, s2, storey.Elevation
