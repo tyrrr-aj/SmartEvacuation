@@ -20,3 +20,8 @@ Połączone przestrzenie wraz z piętrami:
 	MATCH (s1:IfcSpace)--(b1:IfcRelSpaceBoundary)--(:IfcDoor)--(b2:IfcRelSpaceBoundary)--(s2:IfcSpace)--(:IfcRelAggregates)--(storey:IfcBuildingStorey)
 	CALL apoc.create.vRelationship(s1,'IS_CONNECTED',{},s2) YIELD rel
 	RETURN s1, rel, s2, storey.Elevation
+
+Drzwi przynależne do ściany:
+	MATCH (w:IfcWallStandardCase)<--(:IfcRelVoidsElement)-->(:IfcOpeningElement)<--(:IfcRelFillsElement)-->(d:IfcDoor)
+	CALL apoc.create.vRelationship(w,'ARE_IN_WALL',{},d) YIELD rel
+	RETURN w, rel, d

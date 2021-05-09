@@ -1,0 +1,6 @@
+Dla każdego "korytarza":
+	1. pogrupuj sąsiadów wg ścian
+	2. posortuj sąsiadów w obrębie ścian
+	3. dla każdego sąsiada utwórz osobny "fragment korytarza"
+	4. wyznacz "kierunek korytarza" (oś wzdłuż której jest najdłuższy - heurystyka)
+	5. posortuj "fragmenty korytarza" wg współrzędnych wzdłuż "kierunku korytarza"
