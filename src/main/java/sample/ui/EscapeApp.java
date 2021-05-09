@@ -7,12 +7,10 @@ import javafx.scene.Scene;
 import javafx.stage.Stage;
 import sample.mocks.BuildingMocks;
 import sample.models.Building;
-import sample.solver.EvacuationSolver;
-import sample.solver.Formula;
 
 public class EscapeApp extends Application {
 
-    Building building = BuildingMocks.getSmallBuilding2();
+    Building building = BuildingMocks.getSmallBuilding();
 
     @Override
     public void start(Stage stage) throws Exception {
