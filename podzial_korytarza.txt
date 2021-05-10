@@ -1,6 +1,120 @@
-Dla każdego "korytarza":
-	1. pogrupuj sąsiadów wg ścian
-	2. posortuj sąsiadów w obrębie ścian
-	3. dla każdego sąsiada utwórz osobny "fragment korytarza"
-	4. wyznacz "kierunek korytarza" (oś wzdłuż której jest najdłuższy - heurystyka)
-	5. posortuj "fragmenty korytarza" wg współrzędnych wzdłuż "kierunku korytarza"
+zakładając, że:
+- mamy klasę Area o właściwościach Up, Down, Left, Right (wskazujących na sąsiednie Area)
+- 'neighbours' to lista obiektów typu Space o właściwościach: Coord (współrzędne drzwi/środka pomieszczenia), Wall (id ściany przez którą łączy się z korytarzem)
+- wall_coincidence to funkcja pozwalająca sprawdzić, czy dane dwie ściany są ze sobą połączone
+- mamy enum 'BEGIN', 'END'
+
+Schemat postępowania: # dla prostokątnych korytarzy
+1. Pogrupuj sąsiednie pomieszczenia wg ściany, która oddziela je od korytarza
+2. W każdej grupie posortuj pomieszczenia za pomocą funkcji orient (wg wskazówek zegara wokół korytarza)
+3. Połącz grupy w pary związane z przeciwległymi ścianami (przeciwległe ściany rozpoznaj po tym, że nie są połączone; niektóre grupy mogą być puste (brak pomieszczeń za daną ścianą))
+4. Wyznacz osie korytarza - proste wyznaczające kierunki ścian (wystarczą współrzędne kierunkowe, bez przesunięcia)
+5. Dla każdej pary grup pomieszczeń za przeciwległymi ścianami wyznacz podział korytarza w danej osi
+6. Na podstawie podziałów wygeneruj docelowe przestrzenie
+
+
+Pseudokod:
+
+split_corridor(corridor, neighbours, wall_coincidance):
+	neigh_by_wall = groupby(neighbours, lambda neigh: neigh.Wall) # wynikiem jest słownik {wall: [neigh]}
+	
+	for neigh_group in neigh_by_wall:
+		sort(neigh_group, lambda n1, n2: orient(n1, corridor.Coord, n2) # orient to funkcja obliczająca, czy trzeci podany punkt znajduje się na lewo czy na prawo od prostej wyznaczonej przez pierwsze dwa
+    
+    opposite_groups = groupby(neigh_by_wall, lambda g1, g2: not wall_coincidence(g1.Wall, g2.Wall))
+    
+    hor_axis, ver_axis = get_axes(corridor)
+    
+    vertical_groups, horizontal_groups = *opposite_groups
+    vertical_splits = get_splits(vertical_groups, ver_axis)
+    horizontal_splits = get_splits(horizontal_groups, hor_axis)
+    
+    new_areas = build_new_areas(vertical_splits, horizontal_splits)
+    return new_areas
+    
+    
+get_splits(groups, axis):
+""" 
+funkcja zwraca listę kolejnych kolumn/wierszy, na które ma być podzielony korytarz, wraz z należącymi do niej pomieszczeniami
+przykładowe wyjście: [(n1, BEGIN), (n2, END), ((n3, BEGIN), (n4, END)), (n5, END), (n6, BEGIN)]
+gdzie krotka (n, dir) oznacza że w danym wierszu/kolumnie ma się znaleźć przestrzeń połączona z pomieszczeniem n odpowiednio z kierunku Left/Up (BEGIN) lub Right/Down(END)
+każdy element listy opisuje jedno lub dwa połączone pomieszczenia
+"""
+    splits = []
+
+    g1, g2 = *groups:
+    n1 = first(g1) if g1 else None
+    n2 = last(g2) if g2 else None
+    
+    while n1 or n2:
+        if not n1:
+            splits.append((n2, END))
+            n2 = prev(n2)
+        elif not n2:
+            splits.append((n1, BEGIN))
+            n1 = next(n1)
+        elif lies_before(n1, n2, axis) and next(n1) and lies_before(next(n1), n2, axis):
+            splits.append((n1, BEGIN))
+            n1 = next(n1)
+        elif lies_before(n2, n1, axis) and prev(n2) and lies_before(prev(n2), n1, axis):
+            splits.append((n2, END))
+            n2 = prev(n2)
+        else:
+            splits.append((n1, BEGIN), (n2, END))
+            n1 = next(n1)
+            n2 = prev(n2)
+    
+    return splits
+            
+    
+build_new_areas(vertical_splits, horizontal_splits):
+    size_x = len(vertical_splits)
+    size_y = len(horizontal_splits)
+
+    new_areas[size_x][size_y] = fill(Area())
+    
+    # vertical edges
+    for i, split in hor_splits:
+        case split of:
+            (neigh, BEGIN) -> new_areas[0][i].Left = neigh
+            (neigh, END) -> new_areas[-1][i].Right = neigh 
+            ((neigh, BEGIN), (neigh, END)) -> 
+                new_areas[0][i].Left = neigh
+                new_areas[-1][i].Right = neigh 
+    
+    # horizontal edges
+    for i, split in ver_splits:
+        case split of:
+            (neigh, BEGIN) -> new_areas[i][0].Up = neigh
+            (neigh, END) -> new_areas[i][-1].Down = neigh 
+            ((neigh, BEGIN), (neigh, END)) -> 
+                new_areas[i][0].Up = neigh
+                new_areas[i][-1].Down = neigh 
+    
+    # internal connections
+    for i, column in enumerate(new_areas):
+        for j, area in enumerate(column):
+            area.Left = new_areas[i-1][j] if i > 0 else None
+            area.Up = new_areas[i][j-1] if j > 0 else None
+            area.Right = new_areas[i+1][j] if i < len(new_areas) - 1 else None
+            area.Down = new_areas[i][j+1] if j < len(column) - 1 else None
+    
+    return new_areas
+            
+    
+    
+lies_before(n1, n2, axis):  # axis to prosta zapisana jako krotka współrzędnych (tylko pierwsza z nich jest istotna): (a, b)
+    if axis[0] == 0:
+        return n1[1] < n2[1]
+    
+    orth_line_coef = 1/axis[0]
+    
+    n1_b = n1[1] - n1[0] * orth_line_coef
+    n2_b = n2[1] - n2[0] * orth_line_coef
+    
+    return n1_b < n2_b
+        
+    
+    
+get_axes(corridor):
+    ...
