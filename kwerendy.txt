@@ -58,3 +58,42 @@ Koordynaty obiektów (np. drzwi, pomieszczeń) względem pierwszego podanego obi
 		RETURN coord_system[4] AS x, coord_system[5] AS y
 	}
 	RETURN obj.Name, obj.GlobalId, x, y
+
+Wierczhołki pomieszczenia:
+	MATCH path = (:IfcBuildingStorey {Name:'1. Obergeschoss'}) -[:ObjectPlacement]->(:IfcLocalPlacement) <-[:PlacementRelTo * ..]- (:IfcLocalPlacement) <-[:ObjectPlacement]- (space:IfcSpace)
+	WITH space, nodes(path)[2..-1] AS p
+	MATCH (space) -[:Representation]-> (:IfcProductDefinitionShape) -[:Representations]-> (:IfcShapeRepresentation) -[:Items]-> (:IfcExtrudedAreaSolid) -[:SweptArea]-> (:IfcArbitraryClosedProfileDef) -[:OuterCurve]-> (pl:IfcPolyline) -[:Points]-> (point:IfcCartesianPoint)
+	WITH space, p, collect(DISTINCT point) AS points
+	CALL {
+		WITH p, points
+		UNWIND p AS lp_coord
+		MATCH (lp_coord) -[:RelativePlacement]-> (a:IfcAxis2Placement3D)
+		WITH a, points
+		MATCH (axes_node:IfcDirection) <-[:RefDirection]- (a) -[:Location]-> (coord_node:IfcCartesianPoint)
+		WITH points,
+			split(axes_node.DirectionRatios, ',') AS axes, 
+			split(coord_node.Coordinates, ',') AS coords
+		WITH points,
+			toFloat(coords[0]) AS x,
+			toFloat(coords[1]) AS y,
+			toFloat(axes[0]) AS x_axis_x_coef,
+			toFloat(axes[1]) AS x_axis_y_coef
+		WITH points, x, y, x_axis_x_coef, x_axis_y_coef,
+			x_axis_y_coef AS y_axis_x_coef, // x_axis vector rotated by 90 degrees clockwise
+			-x_axis_x_coef AS y_axis_y_coef // x_axis vector rotated by 90 degrees clockwise
+		WITH points, collect([x_axis_x_coef, x_axis_y_coef, y_axis_x_coef, y_axis_y_coef,x,y]) AS coord_trans
+		WITH points,
+			reduce(outer_coefs = [1.0,0.0,0.0,1.0,0.0,0.0], inner_coefs IN coord_trans | [
+				outer_coefs[0] * inner_coefs[0] + outer_coefs[2] * inner_coefs[1],
+				outer_coefs[1] * inner_coefs[0] + outer_coefs[3] * inner_coefs[1],
+				outer_coefs[0] * inner_coefs[2] + outer_coefs[2] * inner_coefs[3],
+				outer_coefs[1] * inner_coefs[2] + outer_coefs[3] * inner_coefs[3],
+				outer_coefs[4] + inner_coefs[4] * outer_coefs[0] + inner_coefs[5] * outer_coefs[1],
+				outer_coefs[5] + inner_coefs[4] * outer_coefs[2] + inner_coefs[5] * outer_coefs[3]
+			]) AS coord_system
+		WITH [p IN points | split(p.Coordinates, ',')] AS points, coord_system
+		WITH [p IN points | [coord IN p | toFloat(coord)]] AS points, coord_system
+		RETURN [p IN points | [coord_system[4] + coord_system[0] * p[0] + coord_system[1] * p[1],
+							coord_system[5] + coord_system[2] + p[0] + coord_system[3] * p[1]]] AS points_global
+	}
+	RETURN space.Name, space.GlobalId, points_global
