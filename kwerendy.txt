@@ -25,3 +25,36 @@ Drzwi przynależne do ściany:
 	MATCH (w:IfcWallStandardCase)<--(:IfcRelVoidsElement)-->(:IfcOpeningElement)<--(:IfcRelFillsElement)-->(d:IfcDoor)
 	CALL apoc.create.vRelationship(w,'ARE_IN_WALL',{},d) YIELD rel
 	RETURN w, rel, d
+	
+Koordynaty obiektów (np. drzwi, pomieszczeń) względem pierwszego podanego obiektu: piętra, budynku, etc.:
+	MATCH path = (:IfcBuildingStorey {Name:'1. Obergeschoss'}) -[:ObjectPlacement]->(:IfcLocalPlacement) <-[:PlacementRelTo * ..]- (:IfcLocalPlacement) <-[:ObjectPlacement]- (obj:IfcDoor)
+	WITH obj, nodes(path)[2..-1] AS p
+	CALL {
+		WITH p
+		UNWIND p AS lp_coord
+		MATCH (lp_coord) -[:RelativePlacement]-> (a:IfcAxis2Placement3D)
+		WITH a
+		MATCH (axes_node:IfcDirection) <-[:RefDirection]- (a) -[:Location]-> (coord_node:IfcCartesianPoint)
+		WITH
+			split(axes_node.DirectionRatios, ',') AS axes, 
+			split(coord_node.Coordinates, ',') AS coords
+		WITH
+			toFloat(coords[0]) AS x,
+			toFloat(coords[1]) AS y,
+			toFloat(axes[0]) AS x_axis_x_coef,
+			toFloat(axes[1]) AS x_axis_y_coef
+		WITH x, y, x_axis_x_coef, x_axis_y_coef,
+			x_axis_y_coef AS y_axis_x_coef, // x_axis vector rotated by 90 degrees clockwise
+			-x_axis_x_coef AS y_axis_y_coef // x_axis vector rotated by 90 degrees clockwise
+		WITH collect([x_axis_x_coef, x_axis_y_coef, y_axis_x_coef, y_axis_y_coef,x,y]) AS coord_trans
+		WITH reduce(outer_coefs = [1.0,0.0,0.0,1.0,0.0,0.0], inner_coefs IN coord_trans | [
+			outer_coefs[0] * inner_coefs[0] + outer_coefs[2] * inner_coefs[1],
+			outer_coefs[1] * inner_coefs[0] + outer_coefs[3] * inner_coefs[1],
+			outer_coefs[0] * inner_coefs[2] + outer_coefs[2] * inner_coefs[3],
+			outer_coefs[1] * inner_coefs[2] + outer_coefs[3] * inner_coefs[3],
+			outer_coefs[4] + inner_coefs[4] * outer_coefs[0] + inner_coefs[5] * outer_coefs[1],
+			outer_coefs[5] + inner_coefs[4] * outer_coefs[2] + inner_coefs[5] * outer_coefs[3]
+		]) AS coord_system
+		RETURN coord_system[4] AS x, coord_system[5] AS y
+	}
+	RETURN obj.Name, obj.GlobalId, x, y
