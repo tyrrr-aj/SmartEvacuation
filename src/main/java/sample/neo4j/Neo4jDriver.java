@@ -15,6 +15,14 @@ import java.util.*;
 public class Neo4jDriver implements AutoCloseable {
     private final Driver driver;
 
+    public Neo4jDriver() {
+        driver = GraphDatabase.driver(
+                "bolt://localhost:7687",
+                AuthTokens.basic( "neo4j", "password" )
+        );
+
+    }
+
     public Neo4jDriver( String uri, String user, String password ) {
         driver = GraphDatabase.driver( uri, AuthTokens.basic( user, password ) );
     }
