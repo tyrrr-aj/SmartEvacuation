@@ -10,7 +10,7 @@ import sample.models.Building;
 
 public class EscapeApp extends Application {
 
-    Building building = BuildingMocks.getSmallBuilding();
+    Building building = BuildingMocks.getBuildingFromIFC();
 
     @Override
     public void start(Stage stage) throws Exception {

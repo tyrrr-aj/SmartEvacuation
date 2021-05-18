@@ -15,8 +15,14 @@ public class BuildingMocks {
             var connectedRooms = neo4jDriver.readConnectedSpaces();
             for(var room : roomsWithCoordinates) {
                 var isInDanger = false;
+                System.out.println(room.getId());
                 building.addArea(room.getId(), isInDanger, null);
             }
+
+            connectedRooms
+                    .entrySet()
+                    .stream()
+                    .forEach(e -> System.out.println(e.getKey() + ":" + e.getValue()));
         }
         return building;
     }

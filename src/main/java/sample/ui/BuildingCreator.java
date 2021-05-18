@@ -31,7 +31,7 @@ public class BuildingCreator {
     public void init() throws Exception {
         createScene();
         createResetButton();
-        generateNewEvacuationPlan();
+//        generateNewEvacuationPlan();
     }
 
     private void createScene() {
@@ -49,22 +49,26 @@ public class BuildingCreator {
     private void initializeBuilding() {
         GridPane gridPane = (GridPane) scene.lookup("#grid");
         gridPane.getChildren().clear();
+        System.out.println("ID: " + building.getAreas().entrySet().iterator().next().getKey());
         printRoomWithNeighbours(building.getAreas().entrySet().iterator().next().getKey());
     }
 
     private void printRoomWithNeighbours(int roomId) {
+        try {
+            int roomColumnIndex = this.startColumn;
+            int roomRowIndex = this.startRow;
 
-        int roomColumnIndex = this.startColumn;
-        int roomRowIndex = this.startRow;
-
-        ImageView roomImage = (ImageView) scene.lookup("#room-" + roomId);
-        if(roomImage != null) {
-            roomColumnIndex = GridPane.getColumnIndex(roomImage);
-            roomRowIndex = GridPane.getRowIndex(roomImage);
-        } else {
-            addRoom("/rooms/room0.png", roomColumnIndex, roomRowIndex, roomId);
+            ImageView roomImage = (ImageView) scene.lookup("#room-" + roomId);
+            if (roomImage != null) {
+                roomColumnIndex = GridPane.getColumnIndex(roomImage);
+                roomRowIndex = GridPane.getRowIndex(roomImage);
+            } else {
+                addRoom("/rooms/room0.png", roomColumnIndex, roomRowIndex, roomId);
+            }
+            printNeighbours(roomId, roomColumnIndex, roomRowIndex);
+        } catch (Exception e) {
+            System.out.println(e);
         }
-        printNeighbours(roomId, roomColumnIndex, roomRowIndex);
     }
 
     private void addRoom(String imageURL, int columnIndex, int rowIndex, int roomId) {

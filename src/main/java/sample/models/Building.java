@@ -21,7 +21,7 @@ public class Building {
     }
 
     public void addArea(int id, boolean isInDanger, ConnectionDirection exitDirection){
-        areas.put(buildingSize, new Area(id, isInDanger, exitDirection, null));
+        areas.put(id, new Area(id, isInDanger, exitDirection, null));
         buildingSize++;
     }
 
