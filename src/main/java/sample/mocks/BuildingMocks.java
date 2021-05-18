@@ -18,6 +18,7 @@ public class BuildingMocks {
         building.createConnection(1, 2, ConnectionDirection.RIGHT);
         building.createConnection(1, 3, ConnectionDirection.BOTTOM);
 
+        
         return building;
     }
 

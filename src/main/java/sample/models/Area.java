@@ -1,5 +1,6 @@
 package sample.models;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class Area {
@@ -7,6 +8,7 @@ public class Area {
     private Integer id;
     private boolean isInDanger;
     private boolean containsExit;
+    private List<Double[]> cornerCoordinates;
     private ConnectionDirection exitDirection;
     private String action = "E";
     private List<Neighbour> neighbours;
@@ -22,6 +24,7 @@ public class Area {
         this.id = id;
         this.isInDanger = isInDanger;
         this.containsExit = true;
+        this.cornerCoordinates = new ArrayList<Double[]>();
         this.exitDirection = exitDirection;
         this.neighbours = neighbours;
     }
