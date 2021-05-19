@@ -1,4 +1,4 @@
-package sample.models;
+package root.models;
 
 public enum ConnectionDirection {
         NONE,

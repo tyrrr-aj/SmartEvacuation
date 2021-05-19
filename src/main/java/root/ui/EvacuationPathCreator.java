@@ -1,17 +1,14 @@
-package sample.ui;
+package root.ui;
 
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.paint.Color;
-import sample.models.Building;
-import sample.models.ConnectionDirection;
-import sample.solver.EvacuationSolver;
-import sample.solver.Formula;
+import root.models.Building;
+import root.models.ConnectionDirection;
+import root.solver.EvacuationSolver;
+import root.solver.Formula;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static java.util.Map.entry;
 
@@ -20,11 +17,11 @@ public class EvacuationPathCreator {
     private Formula formula;
     private EvacuationSolver evacuationSolver;
     private Building building;
-    private List<LinkedHashMap<String, String>> allActions;
+    private Map<Integer, LinkedHashMap<String, String>> allActions;
 
     public EvacuationPathCreator(Scene scene, Formula formula, EvacuationSolver evacuationSolver, Building building) {
         this.scene = scene;
-        this.allActions = new ArrayList<>();
+        this.allActions = new HashMap<>();
         this.formula = formula;
         this.evacuationSolver = evacuationSolver;
         this.building = building;
@@ -61,7 +58,7 @@ public class EvacuationPathCreator {
                 System.out.println(e.getKey().toString() + ", " + e.getValue().toString());
                 map.put(e.getKey().toString(), e.getValue().toString());
             }
-            allActions.add(map);
+            allActions.put(entry.getKey(), map);
         }
     }
 
@@ -85,15 +82,16 @@ public class EvacuationPathCreator {
     }
 
     private void updateSigns(Scene scene){
-        for(int i = 0; i < building.getBuildingSize(); i++) {
-            Label label = (Label) scene.lookup("#label-" + i);
-            label.setText(allActions.get(i).get(building.getAreas().get(i).getAction()));
+        for (var area : building.getAreas().values()) {
 
-            if(building.getAreas().get(i).isContainsExit()) {
+            Label label = (Label) scene.lookup("#label-" + area.getId());
+            label.setText(allActions.get(area.getId()).get(area.getAction()));
+
+            if(area.isContainsExit()) {
                 label.setStyle("-fx-font-size: 32px");
             }
 
-            if(!building.getAreas().get(i).isInDanger() && !building.getAreas().get(i).isContainsExit()) {
+            if(!area.isInDanger() && !area.isContainsExit()) {
                 label.setTextFill(Color.web("#000000", 1));
             }
         }

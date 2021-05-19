@@ -1,4 +1,4 @@
-package sample.ui;
+package root.ui;
 
 import javafx.geometry.HPos;
 import javafx.scene.Scene;
@@ -13,9 +13,9 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.RowConstraints;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
-import sample.models.Building;
-import sample.solver.EvacuationSolver;
-import sample.solver.Formula;
+import root.models.Building;
+import root.solver.EvacuationSolver;
+import root.solver.Formula;
 
 public class BuildingCreator {
     private Scene scene;
@@ -182,8 +182,8 @@ public class BuildingCreator {
     }
 
     private void reset() throws Exception {
-        for(int i = 0; i < building.getAreas().size(); i++) {
-            building.getAreas().get(i).setIsInDanger(false);
+        for(var area: building.getAreas().values()) {
+            area.setIsInDanger(false);
         }
         generateNewEvacuationPlan();
     }

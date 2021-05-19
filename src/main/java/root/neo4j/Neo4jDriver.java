@@ -1,5 +1,6 @@
-package sample.neo4j;
+package root.neo4j;
 
+import org.javatuples.Pair;
 import org.neo4j.driver.AuthTokens;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.GraphDatabase;
@@ -7,7 +8,7 @@ import org.neo4j.driver.Result;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.Transaction;
 import org.neo4j.driver.TransactionWork;
-import sample.models.Area;
+import root.geometry.Point;
 
 import java.util.*;
 
@@ -18,7 +19,7 @@ public class Neo4jDriver implements AutoCloseable {
     public Neo4jDriver() {
         driver = GraphDatabase.driver(
                 "bolt://localhost:7687",
-                AuthTokens.basic( "neo4j", "password" )
+                AuthTokens.basic( "neo4j", "letMEin!" )
         );
 
     }
@@ -53,27 +54,21 @@ public class Neo4jDriver implements AutoCloseable {
 
     private String connectedSpacesQuery() {
         return "MATCH (s1:IfcSpace)--(b1:IfcRelSpaceBoundary)--(d:IfcDoor)--(b2:IfcRelSpaceBoundary)--(s2:IfcSpace)\n" +
-                "CALL apoc.create.vRelationship(s1,'IS_CONNECTED',{},s2) YIELD rel\n" +
-                "RETURN s1, rel, s2";
+                "RETURN s1, s2";
     }
 
-    public HashMap<Integer, List<Integer>> readConnectedSpaces() {
+    public List<Pair<Integer, Integer>> readConnectedSpaces() {
         try (Session session = driver.session())
         {
             var result = session.run(connectedSpacesQuery());
-            HashMap connectedRooms = new HashMap<Integer, List<Integer>>();
+            List<Pair<Integer, Integer>> connectedRooms = new LinkedList<>();
             while(result.hasNext()) {
                 var record = result.next();
-                Integer key = Integer.valueOf((String)record.fields().get(0).value().asMap().get("Name"));
-                Integer value = Integer.valueOf((String)record.fields().get(2).value().asMap().get("Name"));
-                List<Integer> values;
-                if(connectedRooms.containsKey(key)) {
-                    values = (ArrayList<Integer>)connectedRooms.get(key);
-                } else {
-                    values = new ArrayList<Integer>();
+                Integer room1 = Integer.valueOf((String)record.fields().get(0).value().asMap().get("Name"));
+                Integer room2 = Integer.valueOf((String)record.fields().get(1).value().asMap().get("Name"));
+                if (!connectedRooms.contains(new Pair<>(room2, room1))) { // necessary only while working on single floor
+                    connectedRooms.add(new Pair<>(room1, room2));
                 }
-                values.add(value);
-                connectedRooms.put(key, values);
             }
             return connectedRooms;
         }
@@ -84,7 +79,7 @@ public class Neo4jDriver implements AutoCloseable {
                 "RETURN s";
     }
 
-    public ArrayList<Integer> readAreasWithExits() {
+    public List<Integer> readAreasWithExits() {
         try (Session session = driver.session())
         {
             var result = session.run(areasWithExitQuery());
@@ -145,9 +140,9 @@ public class Neo4jDriver implements AutoCloseable {
                 var rs = result.next();
                 var values = rs.values();
                 var spaceId = Integer.valueOf(values.get(0).asString());
-                var coor = new ArrayList<Double[]>();
+                var coor = new ArrayList<Point>();
                 for(int i=0; i < 4; i++) {
-                    Double coordinates[] = { (Double) values.get(2).get(i).asList().get(0), (Double) values.get(2).get(i).asList().get(1) };
+                    Point coordinates = new Point((double) values.get(2).get(i).asList().get(0), (double) values.get(2).get(i).asList().get(1));
                     coor.add(coordinates);
                 }
                 resultData.add(new AreaResult(spaceId, coor));
@@ -160,7 +155,7 @@ public class Neo4jDriver implements AutoCloseable {
         {
             var uri = "bolt://localhost:7687";
             var user = "neo4j";
-            var password = "password";
+            var password = "letMEin!";
 
             try ( Neo4jDriver neo4jDriver = new Neo4jDriver( uri, user, password ) )
             {

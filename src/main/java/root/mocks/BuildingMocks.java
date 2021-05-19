@@ -1,8 +1,8 @@
-package sample.mocks;
+package root.mocks;
 
-import sample.models.Building;
-import sample.models.ConnectionDirection;
-import sample.neo4j.Neo4jDriver;
+import root.models.Building;
+import root.models.ConnectionDirection;
+import root.neo4j.Neo4jDriver;
 
 public class BuildingMocks {
 
@@ -20,9 +20,7 @@ public class BuildingMocks {
             }
 
             connectedRooms
-                    .entrySet()
-                    .stream()
-                    .forEach(e -> System.out.println(e.getKey() + ":" + e.getValue()));
+                    .forEach(e -> System.out.println(e.getValue0() + ":" + e.getValue1()));
         }
         return building;
     }

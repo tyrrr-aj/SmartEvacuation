@@ -1,4 +1,4 @@
-package sample.models;
+package root.models;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -6,17 +6,20 @@ import java.util.List;
 public class Area {
 
     private Integer id;
-    private boolean isInDanger;
-    private boolean containsExit;
-    private List<Double[]> cornerCoordinates;
+    private boolean isInDanger = false;
+    private boolean containsExit = false;
+    private List<Double[]> cornerCoordinates = new ArrayList<>();
     private ConnectionDirection exitDirection;
     private String action = "E";
     private List<Neighbour> neighbours;
 
+    public Area(int id) {
+        this.id = id;
+    }
+
     public Area(int id, boolean isInDanger, List<Neighbour> neighbours) {
         this.id = id;
         this.isInDanger = isInDanger;
-        this.containsExit = false;
         this.neighbours = neighbours;
     }
 
@@ -24,7 +27,7 @@ public class Area {
         this.id = id;
         this.isInDanger = isInDanger;
         this.containsExit = true;
-        this.cornerCoordinates = new ArrayList<Double[]>();
+        this.cornerCoordinates = new ArrayList<>();
         this.exitDirection = exitDirection;
         this.neighbours = neighbours;
     }

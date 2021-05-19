@@ -1,10 +1,10 @@
-package sample.solver;
+package root.solver;
 
 import org.sat4j.core.VecInt;
 import org.sat4j.minisat.SolverFactory;
 import org.sat4j.specs.IProblem;
 import org.sat4j.specs.ISolver;
-import sample.models.Area;
+import root.models.Area;
 
 import java.util.List;
 import java.util.Map;

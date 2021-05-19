@@ -1,7 +1,7 @@
-package sample.solver;
+package root.solver;
 
-import sample.models.Area;
-import sample.models.Building;
+import root.models.Area;
+import root.models.Building;
 
 import java.util.ArrayList;
 import java.util.HashMap;

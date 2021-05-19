@@ -1,4 +1,4 @@
-package sample.models;
+package root.models;
 
 import java.util.*;
 
@@ -16,7 +16,7 @@ public class Building {
     public Integer getBuildingSize() { return buildingSize; }
 
     public void addArea(int id, boolean isInDanger){
-        areas.put(buildingSize, new Area(id, isInDanger, null));
+        areas.put(id, new Area(id, isInDanger, null));
         buildingSize++;
     }
 

@@ -17,7 +17,7 @@
                 <artifactId>javafx-maven-plugin</artifactId>
                 <version>0.0.4</version>
                 <configuration>
-                    <mainClass>sample.ui.EscapeApp</mainClass>
+                    <mainClass>root.ui.EscapeApp</mainClass>
                 </configuration>
             </plugin>
 
