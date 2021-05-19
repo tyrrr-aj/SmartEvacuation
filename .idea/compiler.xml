@@ -22,7 +22,7 @@
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
-      <module name="escape-path-finder" target="11" />
+      <module name="escape-path-finder" target="10" />
     </bytecodeTargetLevel>
   </component>
 </project>

@@ -41,14 +41,19 @@ public class BuildingExtractor {
 
         var connections = neo4jDriver.readConnectedSpaces();
         connections
+                .entrySet()
                 .stream()
-                .filter(roomPair -> areasByName.containsKey(roomPair.getValue0())) // necessary only while working on single floor
-                .map(roomPair -> new Triplet<>(
-                        roomPair.getValue0(),
-                        roomPair.getValue1(),
-                        areasByName.get(roomPair.getValue0()).getCenterCoord().getRelativeDirection(
-                                areasByName.get(roomPair.getValue1()).getCenterCoord()
-                        )))
+                .filter(entry -> areasByName.containsKey(entry.getKey())) // necessary only while working on single floor
+                .flatMap(entry -> entry
+                        .getValue()
+                        .stream()
+                        .filter(roomId -> areasByName.containsKey(roomId)) // necessary only while working on single floor
+                        .map(roomId -> new Triplet<>(
+                                entry.getKey(),
+                                roomId,
+                                areasByName.get(entry.getKey()).getCenterCoord().getRelativeDirection(
+                                        areasByName.get(roomId).getCenterCoord())))
+                        )
                 .forEach(conn -> building.createConnection(conn.getValue0(), conn.getValue1(), conn.getValue2()));
     }
 

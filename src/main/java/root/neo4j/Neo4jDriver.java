@@ -57,18 +57,16 @@ public class Neo4jDriver implements AutoCloseable {
                 "RETURN s1, s2";
     }
 
-    public List<Pair<Integer, Integer>> readConnectedSpaces() {
-        try (Session session = driver.session())
-        {
+    public Map<Integer, List<Integer>> readConnectedSpaces() {
+        try (Session session = driver.session()) {
             var result = session.run(connectedSpacesQuery());
-            List<Pair<Integer, Integer>> connectedRooms = new LinkedList<>();
-            while(result.hasNext()) {
+            Map<Integer, List<Integer>> connectedRooms = new HashMap<>();
+            while (result.hasNext()) {
                 var record = result.next();
-                Integer room1 = Integer.valueOf((String)record.fields().get(0).value().asMap().get("Name"));
-                Integer room2 = Integer.valueOf((String)record.fields().get(1).value().asMap().get("Name"));
-                if (!connectedRooms.contains(new Pair<>(room2, room1))) { // necessary only while working on single floor
-                    connectedRooms.add(new Pair<>(room1, room2));
-                }
+                Integer key = Integer.valueOf((String) record.fields().get(0).value().asMap().get("Name"));
+                Integer value = Integer.valueOf((String) record.fields().get(1).value().asMap().get("Name"));
+                connectedRooms.putIfAbsent(key, new LinkedList<>());
+                connectedRooms.get(key).add(value);
             }
             return connectedRooms;
         }

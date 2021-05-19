@@ -45,7 +45,7 @@ public class Building {
 
     public void createConnection(Integer area1, Integer area2, ConnectionDirection connectionDirection) {
         updateConnections(area1, area2, connectionDirection);
-        updateConnections(area2, area1, reverseConnectionDirection(connectionDirection));
+//        updateConnections(area2, area1, reverseConnectionDirection(connectionDirection));
     }
 
     private ConnectionDirection reverseConnectionDirection(ConnectionDirection connectionDirection) {

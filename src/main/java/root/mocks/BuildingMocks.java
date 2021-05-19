@@ -5,26 +5,6 @@ import root.models.ConnectionDirection;
 import root.neo4j.Neo4jDriver;
 
 public class BuildingMocks {
-
-    public static Building getBuildingFromIFC() {
-        Building building = new Building();
-        try ( Neo4jDriver neo4jDriver = new Neo4jDriver() )
-        {
-            var roomsWithCoordinates = neo4jDriver.readAreasWithCoordinates();
-            var roomsWithExits = neo4jDriver.readAreasWithExits();
-            var connectedRooms = neo4jDriver.readConnectedSpaces();
-            for(var room : roomsWithCoordinates) {
-                var isInDanger = false;
-                System.out.println(room.getId());
-                building.addArea(room.getId(), isInDanger, null);
-            }
-
-            connectedRooms
-                    .forEach(e -> System.out.println(e.getValue0() + ":" + e.getValue1()));
-        }
-        return building;
-    }
-
     // []
     // [][]
     // []
