@@ -14,8 +14,13 @@ import javafx.scene.layout.RowConstraints;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import root.models.Building;
+import root.models.ConnectionDirection;
+import root.models.Neighbour;
 import root.solver.EvacuationSolver;
 import root.solver.Formula;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class BuildingCreator {
     private Scene scene;
@@ -49,7 +54,6 @@ public class BuildingCreator {
     private void initializeBuilding() {
         GridPane gridPane = (GridPane) scene.lookup("#grid");
         gridPane.getChildren().clear();
-        System.out.println("ID: " + building.getAreas().entrySet().iterator().next().getKey());
         printRoomWithNeighbours(building.getAreas().entrySet().iterator().next().getKey());
     }
 
@@ -63,18 +67,21 @@ public class BuildingCreator {
                 roomColumnIndex = GridPane.getColumnIndex(roomImage);
                 roomRowIndex = GridPane.getRowIndex(roomImage);
             } else {
-                addRoom("/rooms/room0.png", roomColumnIndex, roomRowIndex, roomId);
+                var neighbours = building.getNeighbours().get(roomId);
+                var connections = getListOfConnections(neighbours);
+                var image = getRoomImage(connections);
+                var rotate = getRoomRotation(connections);
+                addRoom(image, rotate, roomColumnIndex, roomRowIndex, roomId);
             }
             printNeighbours(roomId, roomColumnIndex, roomRowIndex);
         } catch (Exception e) {
-            System.out.println(e);
+            e.printStackTrace();
         }
     }
 
-    private void addRoom(String imageURL, int columnIndex, int rowIndex, int roomId) {
+    private void addRoom(Image image, int rotate, int columnIndex, int rowIndex, int roomId) {
         GridPane gridPane = (GridPane) scene.lookup("#grid");
-
-        Image image = new Image(imageURL);
+        var neighbours = building.getNeighbours().get(roomId);
         ImageView imageView = new ImageView();
         imageView.addEventHandler(MouseEvent.MOUSE_CLICKED, event -> {
             try {
@@ -89,6 +96,7 @@ public class BuildingCreator {
         imageView.setPickOnBounds(true);
         imageView.setId("room-" + roomId);
         imageView.setImage(image);
+        imageView.setRotate(rotate);
         gridPane.add(imageView, columnIndex, rowIndex);
         addRoomLabel(gridPane, columnIndex, rowIndex, roomId);
     }
@@ -123,7 +131,6 @@ public class BuildingCreator {
 
     private void printNeighbours(int roomId, int roomColumnIndex, int roomRowIndex) {
         var neighbours = building.getNeighbours().get(roomId);
-
         for (var neighbour : neighbours) {
             ImageView roomImage = (ImageView) scene.lookup("#room-" + roomId);
             if(roomImage != null) {
@@ -150,7 +157,11 @@ public class BuildingCreator {
                 }
 
                 try {
-                    addRoom("/rooms/room0.png", roomColumnIndex, roomRowIndex, neighbour.getNeighbourId());
+                    var neighbours2 = building.getNeighbours().get(neighbour.getNeighbourId());
+                    var connections = getListOfConnections(neighbours2);
+                    var image = getRoomImage(connections);
+                    var rotate = getRoomRotation(connections);
+                    addRoom(image, rotate, roomColumnIndex, roomRowIndex, neighbour.getNeighbourId());
                     printRoomWithNeighbours(neighbour.getNeighbourId());
                 } catch (Exception e) {
                     if(roomRowIndex < 0) {
@@ -164,6 +175,40 @@ public class BuildingCreator {
                 }
             }
         }
+    }
+
+    private List<ConnectionDirection> getListOfConnections(List<Neighbour> neighbours) {
+        var connections = new ArrayList<ConnectionDirection>();
+        for(var n: neighbours) {
+            connections.add(n.getConnectionDirection());
+        }
+        return connections;
+    }
+
+    private Image getRoomImage(List<ConnectionDirection> connections) {
+        String imagePath;
+        if(connections.size() == 1) {
+            imagePath = "/rooms/one_exit.png";
+        } else if(connections.size() == 2) {
+            if((connections.contains(ConnectionDirection.TOP) && connections.contains(ConnectionDirection.BOTTOM)) ||
+                    connections.contains(ConnectionDirection.LEFT) && connections.contains(ConnectionDirection.RIGHT)) {
+                imagePath = "/rooms/two_exit_bottom.png";
+            } else {
+                imagePath = "/rooms/two_exit_side.png";
+            }
+        } else if(connections.size() == 3) {
+            imagePath = "/rooms/three_exit.png";
+        } else if(connections.size() == 4) {
+            imagePath = "/rooms/four_exit.png";
+        } else {
+            imagePath = "/rooms/no_walls.png";
+        }
+        return new Image(imagePath);
+    }
+
+    // Todo
+    private int getRoomRotation(List<ConnectionDirection> connections) {
+        return 90;
     }
 
     private void createResetButton() {

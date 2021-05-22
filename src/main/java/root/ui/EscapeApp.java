@@ -22,7 +22,7 @@ public class EscapeApp extends Application {
 
         BuildingExtractor buildingExtractor = new BuildingExtractor(new Neo4jDriver());
         building = buildingExtractor.extractBuilding();
-
+//        building = BuildingMocks.getSmallBuilding3();
         BuildingCreator buildingCreator = new BuildingCreator(scene, building);
         buildingCreator.init();
 

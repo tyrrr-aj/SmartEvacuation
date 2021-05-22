@@ -83,7 +83,6 @@ public class EvacuationPathCreator {
 
     private void updateSigns(Scene scene){
         for (var area : building.getAreas().values()) {
-
             Label label = (Label) scene.lookup("#label-" + area.getId());
             label.setText(allActions.get(area.getId()).get(area.getAction()));
 

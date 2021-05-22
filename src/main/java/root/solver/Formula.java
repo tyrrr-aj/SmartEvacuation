@@ -92,23 +92,23 @@ public class Formula {
     }
 
     private void checkNeighbours(){
-        for (Map.Entry<Integer, Area> entry : building.getAreas().entrySet()){
+        for (Map.Entry<Integer, Area> entry : building.getAreas().entrySet()) {
             if(entry.getValue().isContainsExit()){
                 continue;
             }
 
-            for(var neigh : building.getNeighbours().get(entry.getKey())){
+            for(var neigh : building.getNeighbours().get(entry.getKey())) {
                 var neighId = neigh.getNeighbourId();
                 Integer areaId = entry.getValue().getId();
 
                 Area neighbour = building.getAreas().get(neighId);
 
-                if(neighbour.isContainsExit()){
+                if(neighbour.isContainsExit()) {
                     Integer newVar = addVar(getVarNameMove(areaId, neighId));
                     addClause(new int[] {newVar, vars.get(getVarNameDanger(neighId))});
                     addClause(new int[] {-newVar, -vars.get(getVarNameDanger(neighId))});
                 }
-                else{
+                else {
                     addVar(getVarNameMove(areaId, neighId));
                     addVar(getVarNameMove(neighId, areaId));
                     addVar(getVarNameConn(neighId));
