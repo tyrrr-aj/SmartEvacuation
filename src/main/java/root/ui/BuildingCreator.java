@@ -206,9 +206,38 @@ public class BuildingCreator {
         return new Image(imagePath);
     }
 
-    // Todo
     private int getRoomRotation(List<ConnectionDirection> connections) {
-        return 90;
+        int rotation = 0;
+        if(connections.size() == 1) {
+            if(connections.contains(ConnectionDirection.RIGHT)) {
+                rotation = 90;
+            } else if(connections.contains(ConnectionDirection.BOTTOM)) {
+                rotation = 180;
+            } else if(connections.contains(ConnectionDirection.LEFT)) {
+                rotation = 270;
+            }
+        }
+        else if(connections.size() == 2) {
+            if(connections.contains(ConnectionDirection.RIGHT) && connections.contains(ConnectionDirection.LEFT)) {
+                rotation = 90;
+            } else if(connections.contains(ConnectionDirection.RIGHT) && connections.contains(ConnectionDirection.BOTTOM)) {
+                rotation = 90;
+            } else if(connections.contains(ConnectionDirection.BOTTOM) && connections.contains(ConnectionDirection.LEFT)) {
+                rotation = 180;
+            } else if(connections.contains(ConnectionDirection.LEFT) && connections.contains(ConnectionDirection.TOP)) {
+                rotation = 270;
+            }
+        }
+        else if(connections.size() == 3) {
+            if(!connections.contains(ConnectionDirection.TOP)) {
+                rotation = 90;
+            } else if(!connections.contains(ConnectionDirection.RIGHT)) {
+                rotation = 180;
+            } else if(!connections.contains(ConnectionDirection.BOTTOM)) {
+                rotation = 270;
+            }
+        }
+        return rotation;
     }
 
     private void createResetButton() {

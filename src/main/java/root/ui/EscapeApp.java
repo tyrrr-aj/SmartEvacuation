@@ -21,8 +21,8 @@ public class EscapeApp extends Application {
         Scene scene = new Scene(root, 800, 630);
 
         BuildingExtractor buildingExtractor = new BuildingExtractor(new Neo4jDriver());
-        building = buildingExtractor.extractBuilding();
-//        building = BuildingMocks.getSmallBuilding3();
+//        building = buildingExtractor.extractBuilding();
+        building = BuildingMocks.getSmallBuilding2();
         BuildingCreator buildingCreator = new BuildingCreator(scene, building);
         buildingCreator.init();
 
