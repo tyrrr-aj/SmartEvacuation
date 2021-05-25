@@ -39,15 +39,15 @@ public class EvacuationPathCreator {
     }
 
     private void generateActions() {
-        for (var entry : building.getNeighbours().entrySet()) {
+        for (var entry : building.getFloors().get(0).getNeighbours().entrySet()) {
             var map = new LinkedHashMap<String, String>();
             var entryList = new ArrayList<Map.Entry>();
 
-            if(building.getAreas().get(entry.getKey()).isContainsExit()) {
-                entryList.add(entry("E", setLabelForNeighbour(building.getAreas().get(entry.getKey()).getExitDirection())));
+            if(building.getFloors().get(0).getAreas().get(entry.getKey()).isContainsExit()) {
+                entryList.add(entry("E", setLabelForNeighbour(building.getFloors().get(0).getAreas().get(entry.getKey()).getExitDirection())));
             }
 
-            var neighbour = building.getNeighbours().get(entry.getKey());
+            var neighbour = building.getFloors().get(0).getNeighbours().get(entry.getKey());
 
             for (var n : neighbour) {
                 entryList.add(entry(n.getNeighbourId(), setLabelForNeighbour(n.getConnectionDirection())));
@@ -82,7 +82,7 @@ public class EvacuationPathCreator {
     }
 
     private void updateSigns(Scene scene){
-        for (var area : building.getAreas().values()) {
+        for (var area : building.getFloors().get(0).getAreas().values()) {
             Label label = (Label) scene.lookup("#label-" + area.getId());
             label.setText(allActions.get(area.getId()).get(area.getAction()));
 

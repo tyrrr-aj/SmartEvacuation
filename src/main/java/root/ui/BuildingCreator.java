@@ -1,5 +1,6 @@
 package root.ui;
 
+import javafx.fxml.FXML;
 import javafx.geometry.HPos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
@@ -27,6 +28,7 @@ public class BuildingCreator {
     private Building building;
     private int startColumn = 0;
     private int startRow = 0;
+    private int floorNumber;
 
     public BuildingCreator(Scene scene, Building building) {
         this.scene = scene;
@@ -36,6 +38,7 @@ public class BuildingCreator {
     public void init() throws Exception {
         createScene();
         createResetButton();
+        createFloorButtons();
         generateNewEvacuationPlan();
     }
 
@@ -54,7 +57,7 @@ public class BuildingCreator {
     private void initializeBuilding() {
         GridPane gridPane = (GridPane) scene.lookup("#grid");
         gridPane.getChildren().clear();
-        printRoomWithNeighbours(building.getAreas().entrySet().iterator().next().getKey());
+        printRoomWithNeighbours(building.getFloors().get(0).getAreas().entrySet().iterator().next().getKey());
     }
 
     private void printRoomWithNeighbours(int roomId) {
@@ -67,7 +70,7 @@ public class BuildingCreator {
                 roomColumnIndex = GridPane.getColumnIndex(roomImage);
                 roomRowIndex = GridPane.getRowIndex(roomImage);
             } else {
-                var neighbours = building.getNeighbours().get(roomId);
+                var neighbours = building.getFloors().get(0).getNeighbours().get(roomId);
                 var connections = getListOfConnections(neighbours);
                 var image = getRoomImage(connections);
                 var rotate = getRoomRotation(connections);
@@ -81,7 +84,7 @@ public class BuildingCreator {
 
     private void addRoom(Image image, int rotate, int columnIndex, int rowIndex, int roomId) {
         GridPane gridPane = (GridPane) scene.lookup("#grid");
-        var neighbours = building.getNeighbours().get(roomId);
+        var neighbours = building.getFloors().get(0).getNeighbours().get(roomId);
         ImageView imageView = new ImageView();
         imageView.addEventHandler(MouseEvent.MOUSE_CLICKED, event -> {
             try {
@@ -105,13 +108,13 @@ public class BuildingCreator {
         Integer clickedId = Integer.parseInt(event.getPickResult().getIntersectedNode().getId().split("-")[1]);
         Label label = (Label) scene.lookup("#label-" + clickedId);
 
-        if(building.getAreas().get(clickedId).isInDanger()){
+        if(building.getFloors().get(0).getAreas().get(clickedId).isInDanger()){
             label.setTextFill(Color.web("#000000", 1));
-            building.getAreas().get(clickedId).setIsInDanger(false);
+            building.getFloors().get(0).getAreas().get(clickedId).setIsInDanger(false);
             System.out.println(clickedId + " - no danger");
         } else{
             label.setTextFill(Color.web("#ff0000", 1));
-            building.getAreas().get(clickedId).setIsInDanger(true);
+            building.getFloors().get(0).getAreas().get(clickedId).setIsInDanger(true);
             System.out.println(clickedId + " - danger");
         }
 
@@ -130,7 +133,7 @@ public class BuildingCreator {
     }
 
     private void printNeighbours(int roomId, int roomColumnIndex, int roomRowIndex) {
-        var neighbours = building.getNeighbours().get(roomId);
+        var neighbours = building.getFloors().get(0).getNeighbours().get(roomId);
         for (var neighbour : neighbours) {
             ImageView roomImage = (ImageView) scene.lookup("#room-" + roomId);
             if(roomImage != null) {
@@ -157,7 +160,7 @@ public class BuildingCreator {
                 }
 
                 try {
-                    var neighbours2 = building.getNeighbours().get(neighbour.getNeighbourId());
+                    var neighbours2 = building.getFloors().get(0).getNeighbours().get(neighbour.getNeighbourId());
                     var connections = getListOfConnections(neighbours2);
                     var image = getRoomImage(connections);
                     var rotate = getRoomRotation(connections);
@@ -240,9 +243,15 @@ public class BuildingCreator {
         return rotation;
     }
 
+    private void reset() throws Exception {
+        for(var area: building.getFloors().get(0).getAreas().values()) {
+            area.setIsInDanger(false);
+        }
+        generateNewEvacuationPlan();
+    }
+
     private void createResetButton() {
-        ButtonBar buttonBar = (ButtonBar) scene.lookup("#buttons");
-        Button button = new Button("Reset");
+        Button button = (Button) scene.lookup("#reset-button");
         button.addEventHandler(MouseEvent.MOUSE_CLICKED, event -> {
             try {
                 System.out.println("RESET");
@@ -252,15 +261,36 @@ public class BuildingCreator {
             }
             event.consume();
         });
-        buttonBar.getButtons().addAll(button);
     }
 
-    private void reset() throws Exception {
-        for(var area: building.getAreas().values()) {
-            area.setIsInDanger(false);
+    private void floorUp() {
+        Button floor = (Button) scene.lookup("#floor-number");
+        if(floorNumber < building.getFloors().size()) {
+            floorNumber++;
         }
-        generateNewEvacuationPlan();
+        floor.setText("Floor #" + String.valueOf(floorNumber));
     }
+
+    private void floorDown() {
+        Button floor = (Button) scene.lookup("#floor-number");
+        if(floorNumber > 0) {
+            floorNumber--;
+        }
+        floor.setText("Floor #" + String.valueOf(floorNumber));
+    }
+
+    private void createFloorButtons() {
+        Button buttonUp = (Button) scene.lookup("#up-button");
+        buttonUp.addEventHandler(MouseEvent.MOUSE_CLICKED, event -> {
+            floorUp();
+        });
+
+        Button buttonDown = (Button) scene.lookup("#down-button");
+        buttonDown.addEventHandler(MouseEvent.MOUSE_CLICKED, event -> {
+            floorDown();
+        });
+    }
+
 
     private void generateNewEvacuationPlan() throws Exception {
 

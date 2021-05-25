@@ -58,24 +58,24 @@ public class EvacuationSolver {
             return;
         }
 
-        for (Map.Entry<Integer, Area> entry : formula.getBuilding().getAreas().entrySet()) {
+        for (Map.Entry<Integer, Area> entry : formula.getBuilding().getFloors().get(0).getAreas().entrySet()) {
             Integer roomId = entry.getKey();
 
-            if(formula.getBuilding().getAreas().get(roomId).isContainsExit()) {
+            if(formula.getBuilding().getFloors().get(0).getAreas().get(roomId).isContainsExit()) {
                 continue;
             }
 
             System.out.print("Area " + roomId + ": ");
             if(problem.model(vars.get(formula.getVarNameStay(roomId)))) {
                 System.out.println("stay");
-                formula.getBuilding().getAreas().get(roomId).setAction("S");
+                formula.getBuilding().getFloors().get(0).getAreas().get(roomId).setAction("S");
             }
             else {
-                for (var neigh : formula.getBuilding().getNeighbours().get(entry.getKey())) {
+                for (var neigh : formula.getBuilding().getFloors().get(0).getNeighbours().get(entry.getKey())) {
                     var neighId = neigh.getNeighbourId();
                     if(problem.model(vars.get(formula.getVarNameMove(roomId, neighId)))){
                         System.out.println("move to area " + neighId);
-                        formula.getBuilding().getAreas().get(roomId).setAction(neighId.toString());
+                        formula.getBuilding().getFloors().get(0).getAreas().get(roomId).setAction(neighId.toString());
                     }
                 }
             }

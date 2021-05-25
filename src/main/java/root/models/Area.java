@@ -50,7 +50,7 @@ public class Area {
 
     public void setAction(String action) { this.action = action; }
 
-    public String getAction(){ return action; }
+    public String getAction() { return action; }
 
     public void print() {
         System.out.println("Area " + id + ": isInDanger: " + isInDanger + ", containsExit: " + containsExit);

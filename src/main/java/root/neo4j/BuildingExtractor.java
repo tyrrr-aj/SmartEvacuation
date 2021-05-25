@@ -29,7 +29,7 @@ public class BuildingExtractor {
 
     private List<AreaResult> extractAreas() {
         var areaResults = neo4jDriver.readAreasWithCoordinates();
-        areaResults.forEach(areaResult -> building.addArea(areaResult.getId(), false));
+        areaResults.forEach(areaResult -> building.getFloors().get(0).addArea(areaResult.getId(), false));
 
         return areaResults;
     }
@@ -54,7 +54,7 @@ public class BuildingExtractor {
                                 areasByName.get(entry.getKey()).getCenterCoord().getRelativeDirection(
                                         areasByName.get(roomId).getCenterCoord())))
                         )
-                .forEach(conn -> building.createConnection(conn.getValue0(), conn.getValue1(), conn.getValue2()));
+                .forEach(conn -> building.getFloors().get(0).createConnection(conn.getValue0(), conn.getValue1(), conn.getValue2()));
     }
 
     private void extractExits() {
@@ -62,6 +62,6 @@ public class BuildingExtractor {
         areasWithExit
                 .stream()
                 .filter(areaId -> areasByName.containsKey(areaId)) // necessary only while working on single floor
-                .forEach(areaId -> building.updateArea(areaId, false, true));
+                .forEach(areaId -> building.getFloors().get(0).updateArea(areaId, false, true));
     }
 }
