@@ -1,7 +1,9 @@
 package root.neo4j;
 
 import org.javatuples.Triplet;
+import root.geometry.Point;
 import root.models.Building;
+import root.models.ConnectionDirection;
 
 import java.util.List;
 import java.util.Map;
@@ -12,6 +14,7 @@ public class BuildingExtractor {
 
     private Building building;
     private Map<Integer, AreaResult> areasByName;
+    private Map<String, Point> doorCoords;
 
     public BuildingExtractor(Neo4jDriver neo4jDriver) {
         this.neo4jDriver = neo4jDriver;
@@ -21,6 +24,7 @@ public class BuildingExtractor {
         building = new Building();
 
         var areaResults = extractAreas();
+        doorCoords = extractDoors();
         extractConnections(areaResults);
         extractExits();
 
@@ -32,6 +36,13 @@ public class BuildingExtractor {
         areaResults.forEach(areaResult -> building.addArea(areaResult.getId(), false));
 
         return areaResults;
+    }
+
+    private Map<String, Point> extractDoors() {
+        var doorResults = neo4jDriver.readDoorsWithCoordinates();
+        return doorResults
+                .stream()
+                .collect(Collectors.toMap(DoorResult::getGlobalId, DoorResult::getCoords));
     }
 
     private void extractConnections(List<AreaResult> areaResults) {
@@ -47,12 +58,11 @@ public class BuildingExtractor {
                 .flatMap(entry -> entry
                         .getValue()
                         .stream()
-                        .filter(roomId -> areasByName.containsKey(roomId)) // necessary only while working on single floor
-                        .map(roomId -> new Triplet<>(
+                        .filter(rd -> areasByName.containsKey(rd.getValue0())) // necessary only while working on single floor
+                        .map(rd -> new Triplet<>(
                                 entry.getKey(),
-                                roomId,
-                                areasByName.get(entry.getKey()).getCenterCoord().getRelativeDirection(
-                                        areasByName.get(roomId).getCenterCoord())))
+                                rd.getValue0(),
+                                areasByName.get(entry.getKey()).getRelativeDirection(doorCoords.get(rd.getValue1()))))
                         )
                 .forEach(conn -> building.createConnection(conn.getValue0(), conn.getValue1(), conn.getValue2()));
     }
@@ -62,6 +72,6 @@ public class BuildingExtractor {
         areasWithExit
                 .stream()
                 .filter(areaId -> areasByName.containsKey(areaId)) // necessary only while working on single floor
-                .forEach(areaId -> building.updateArea(areaId, false, true));
+                .forEach(areaId -> building.updateArea(areaId, false, true, ConnectionDirection.NONE));
     }
 }

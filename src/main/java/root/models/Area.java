@@ -5,10 +5,9 @@ import java.util.List;
 
 public class Area {
 
-    private Integer id;
+    private final Integer id;
     private boolean isInDanger = false;
     private boolean containsExit = false;
-    private List<Double[]> cornerCoordinates = new ArrayList<>();
     private ConnectionDirection exitDirection;
     private String action = "E";
     private List<Neighbour> neighbours;
@@ -27,7 +26,6 @@ public class Area {
         this.id = id;
         this.isInDanger = isInDanger;
         this.containsExit = true;
-        this.cornerCoordinates = new ArrayList<>();
         this.exitDirection = exitDirection;
         this.neighbours = neighbours;
     }
@@ -51,6 +49,10 @@ public class Area {
     public void setAction(String action) { this.action = action; }
 
     public String getAction(){ return action; }
+
+    public void setExitDirection(ConnectionDirection exitDirection) {
+        this.exitDirection = exitDirection;
+    }
 
     public void print() {
         System.out.println("Area " + id + ": isInDanger: " + isInDanger + ", containsExit: " + containsExit);

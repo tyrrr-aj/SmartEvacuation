@@ -28,7 +28,7 @@ public class EscapeApp extends Application {
 
         stage.setTitle("Adaptacyjny model ewakuacji");
         stage.setScene(scene);
-        stage.setResizable(false);
+        stage.setResizable(true);
         stage.show();
     }
 

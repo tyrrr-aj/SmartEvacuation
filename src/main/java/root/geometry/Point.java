@@ -20,26 +20,4 @@ public class Point {
     public double y() {
         return y;
     }
-
-    public ConnectionDirection getRelativeDirection(Point other) {
-        double xDiff = x - other.x();
-        double yDiff = y - other.y();
-
-        if (abs(xDiff) > abs(yDiff)) {
-            if (xDiff > 0) {
-                return ConnectionDirection.LEFT;
-            }
-            else {
-                return ConnectionDirection.RIGHT;
-            }
-        }
-        else {
-            if (yDiff > 0) {
-                return ConnectionDirection.BOTTOM;
-            }
-            else {
-                return ConnectionDirection.TOP;
-            }
-        }
-    }
 }

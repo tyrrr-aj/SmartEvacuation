@@ -31,7 +31,7 @@ public class BuildingCreator {
     public void init() throws Exception {
         createScene();
         createResetButton();
-        generateNewEvacuationPlan();
+//        generateNewEvacuationPlan();
     }
 
     private void createScene() {

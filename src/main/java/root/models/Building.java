@@ -25,9 +25,10 @@ public class Building {
         buildingSize++;
     }
 
-    public void updateArea(Integer id, boolean isInDanger, boolean containsExit){
+    public void updateArea(Integer id, boolean isInDanger, boolean containsExit, ConnectionDirection exitDirection){
         areas.get(id).setIsInDanger(isInDanger);
         areas.get(id).setContainsExit(containsExit);
+        areas.get(id).setExitDirection(exitDirection);
     }
 
     private void updateConnections(Integer area1, Integer area2, ConnectionDirection connectionDirection) {
