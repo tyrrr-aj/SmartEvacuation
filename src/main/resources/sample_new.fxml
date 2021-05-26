@@ -8,23 +8,25 @@
 <?import javafx.scene.text.Font?>
 
 <?import javafx.scene.layout.VBox?>
-<AnchorPane prefHeight="630.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="root.ui.EscapeApp">
-   <children>
-      <VBox layoutX="80" layoutY="20">
-         <children>
-            <Label text="Interaktywna wizualizacja adaptacyjnego modelu ewakuacji">
-               <font>
-                  <Font name="System Bold" size="16.0" />
-               </font>
-            </Label>
-            <Label text="1. Kliknij na daną strefę, żeby włączyć/wyłączyć zagrożenie." GridPane.rowIndex="1" />
-            <Label text="2. Kolor zielony - strefa zawiera wyjście, kolor czerwony - w strefie istnieje zagrożenie." GridPane.rowIndex="2" />
-            <Label text="3. Strzałka - przejdź we wskazanym kierunku, S - pozostań w strefie i czekaj na ratunek" GridPane.rowIndex="3" />
-         </children>
-      </VBox>
-      <GridPane id="grid" layoutX="80" layoutY="160" prefHeight="400.0" prefWidth="640.0">
-      </GridPane>
-   </children>
-   <ButtonBar id="buttons" prefHeight="55.0" prefWidth="290.0" AnchorPane.bottomAnchor="5.0" AnchorPane.rightAnchor="15.0">
-   </ButtonBar>
+<?import javafx.scene.layout.Pane?>
+<AnchorPane prefHeight="630.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/11.0.1"
+            xmlns:fx="http://javafx.com/fxml/1" fx:controller="root.ui.EscapeApp">
+   <VBox layoutX="80" layoutY="20">
+      <Label text="Interaktywna wizualizacja adaptacyjnego modelu ewakuacji">
+         <font>
+            <Font name="System Bold" size="16.0"/>
+         </font>
+      </Label>
+      <Label text="1. Kliknij na daną strefę, żeby włączyć/wyłączyć zagrożenie." GridPane.rowIndex="1"/>
+      <Label text="2. Kolor zielony - strefa zawiera wyjście, kolor czerwony - w strefie istnieje zagrożenie."
+             GridPane.rowIndex="2"/>
+      <Label text="3. Strzałka - przejdź we wskazanym kierunku, S - pozostań w strefie i czekaj na ratunek"
+             GridPane.rowIndex="3"/>
+   </VBox>
+   <GridPane id="grid" layoutX="80" layoutY="160" prefHeight="400.0" prefWidth="640.0">
+   </GridPane>
+   <!--      <Label fx:id="floorNumber" />-->
+   <Button id="reset-button" layoutX="80" layoutY="580" text="Reset" ButtonBar.buttonData="LEFT"/>
+   <Button id="up-button" layoutX="600" layoutY="580" text="UP" ButtonBar.buttonData="RIGHT"/>
+   <Button id="down-button" layoutX="650" layoutY="580" text="DOWN" ButtonBar.buttonData="RIGHT"/>
 </AnchorPane>

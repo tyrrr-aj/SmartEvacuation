@@ -15,6 +15,7 @@ public class Neo4jDriver implements AutoCloseable {
         driver = GraphDatabase.driver(
                 "bolt://localhost:7687",
                 AuthTokens.basic( "neo4j", "letMEin!" )
+//                AuthTokens.basic( "neo4j", "letMEin!" )
         );
 
     }

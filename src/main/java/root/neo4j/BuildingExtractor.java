@@ -4,6 +4,7 @@ import org.javatuples.Triplet;
 import root.geometry.Point;
 import root.models.Building;
 import root.models.ConnectionDirection;
+import root.models.Floor;
 
 import java.util.List;
 import java.util.Map;
@@ -22,6 +23,7 @@ public class BuildingExtractor {
 
     public Building extractBuilding() {
         building = new Building();
+        building.addFloor(new Floor());
 
         var areaResults = extractAreas();
         doorCoords = extractDoors();
@@ -33,7 +35,7 @@ public class BuildingExtractor {
 
     private List<AreaResult> extractAreas() {
         var areaResults = neo4jDriver.readAreasWithCoordinates();
-        areaResults.forEach(areaResult -> building.addArea(areaResult.getId(), false));
+        areaResults.forEach(areaResult -> building.getFloors().get(0).addArea(areaResult.getId(), false));
 
         return areaResults;
     }
@@ -64,14 +66,14 @@ public class BuildingExtractor {
                                 rd.getValue0(),
                                 areasByName.get(entry.getKey()).getRelativeDirection(doorCoords.get(rd.getValue1()))))
                         )
-                .forEach(conn -> building.createConnection(conn.getValue0(), conn.getValue1(), conn.getValue2()));
+                .forEach(conn -> building.getFloors().get(0).createConnection(conn.getValue0(), conn.getValue1(), conn.getValue2()));
     }
 
     private void extractExits() {
         var areasWithExit = neo4jDriver.readAreasWithExits();
         areasWithExit
                 .stream()
-                .filter(areaId -> areasByName.containsKey(areaId)) // necessary only while working on single floor
-                .forEach(areaId -> building.updateArea(areaId, false, true, ConnectionDirection.NONE));
+                .filter(areaId -> areasByName.containsKey(areaId)) // necessary only while working on single floor:
+                .forEach(areaId -> building.getFloors().get(0).updateArea(areaId, false, true, ConnectionDirection.NONE));
     }
 }

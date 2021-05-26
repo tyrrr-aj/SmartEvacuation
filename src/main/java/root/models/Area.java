@@ -48,7 +48,7 @@ public class Area {
 
     public void setAction(String action) { this.action = action; }
 
-    public String getAction(){ return action; }
+    public String getAction() { return action; }
 
     public void setExitDirection(ConnectionDirection exitDirection) {
         this.exitDirection = exitDirection;
