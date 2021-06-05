@@ -46,26 +46,6 @@ public class Floor {
 
     public void createConnection(Integer area1, Integer area2, ConnectionDirection connectionDirection) {
         updateConnections(area1, area2, connectionDirection);
-//        updateConnections(area2, area1, reverseConnectionDirection(connectionDirection));
-    }
-
-    private ConnectionDirection reverseConnectionDirection(ConnectionDirection connectionDirection) {
-        switch (connectionDirection) {
-            case BOTTOM:
-                return ConnectionDirection.TOP;
-
-            case TOP:
-                return ConnectionDirection.BOTTOM;
-
-            case LEFT:
-                return ConnectionDirection.RIGHT;
-
-            case RIGHT:
-                return ConnectionDirection.LEFT;
-
-            default:
-                return ConnectionDirection.NONE;
-        }
     }
 
     public void print() {

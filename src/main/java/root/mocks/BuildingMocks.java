@@ -13,6 +13,13 @@ public class BuildingMocks {
     //      3 Floors
     public static Building getSmallBuilding() {
         Building building = new Building();
+        building.addFloor(getSmallFloor());
+        building.addFloor(getSmallFloor());
+        building.addFloor(getSmallFloor());
+        return building;
+    }
+
+    private static Floor getSmallFloor() {
         Floor floor = new Floor();
 
         for(int i = 0; i < 3; i++) {
@@ -21,13 +28,12 @@ public class BuildingMocks {
         floor.addArea(3, false, ConnectionDirection.BOTTOM);
 
         floor.createConnection(0, 1, ConnectionDirection.BOTTOM);
+        floor.createConnection(1, 0, ConnectionDirection.TOP);
         floor.createConnection(1, 2, ConnectionDirection.RIGHT);
+        floor.createConnection(2, 1, ConnectionDirection.LEFT);
         floor.createConnection(1, 3, ConnectionDirection.BOTTOM);
-
-        building.addFloor(floor);
-        building.addFloor(floor);
-        building.addFloor(floor);
-        return building;
+        floor.createConnection(3, 1, ConnectionDirection.TOP);
+        return floor;
     }
 
     //        [0]
@@ -38,6 +44,13 @@ public class BuildingMocks {
     //    2 Floors
     public static Building getSmallBuilding2() {
         Building building = new Building();
+        building.addFloor(getSmallFloor());
+        building.addFloor(getSmallFloor2());
+//        building.addFloor(getSmallFloor());
+        return building;
+    }
+
+    private static Floor getSmallFloor2() {
         Floor floor = new Floor();
 
         for(int i = 0; i < 5; i++) {
@@ -46,14 +59,16 @@ public class BuildingMocks {
         floor.addArea(5, false, ConnectionDirection.BOTTOM);
 
         floor.createConnection(0, 2, ConnectionDirection.BOTTOM);
+        floor.createConnection(2, 0, ConnectionDirection.TOP);
         floor.createConnection(1, 2, ConnectionDirection.RIGHT);
+        floor.createConnection(2, 1, ConnectionDirection.LEFT);
         floor.createConnection(2, 3, ConnectionDirection.RIGHT);
+        floor.createConnection(3, 2, ConnectionDirection.LEFT);
         floor.createConnection(2, 5, ConnectionDirection.BOTTOM);
+        floor.createConnection(5, 2, ConnectionDirection.TOP);
         floor.createConnection(3, 4, ConnectionDirection.RIGHT);
-
-        building.addFloor(floor);
-        building.addFloor(floor);
-        return building;
+        floor.createConnection(4, 3, ConnectionDirection.LEFT);
+        return floor;
     }
 
     //       [0]

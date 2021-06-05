@@ -18,6 +18,7 @@ public class EvacuationPathCreator {
     private EvacuationSolver evacuationSolver;
     private Building building;
     private Map<Integer, LinkedHashMap<String, String>> allActions;
+    private int floorNumber;
 
     public EvacuationPathCreator(Scene scene, Formula formula, EvacuationSolver evacuationSolver, Building building) {
         this.scene = scene;
@@ -25,11 +26,12 @@ public class EvacuationPathCreator {
         this.formula = formula;
         this.evacuationSolver = evacuationSolver;
         this.building = building;
+        this.floorNumber = evacuationSolver.getFloorNumber();
     }
 
     public void init() throws Exception {
         generateActions();
-        formula = new Formula(building);
+        formula = new Formula(building, this.floorNumber);
         formula.generate();
         evacuationSolver = new EvacuationSolver(formula);
         evacuationSolver.solve();
@@ -39,15 +41,15 @@ public class EvacuationPathCreator {
     }
 
     private void generateActions() {
-        for (var entry : building.getFloors().get(0).getNeighbours().entrySet()) {
+        for (var entry : building.getFloors().get(this.floorNumber).getNeighbours().entrySet()) {
             var map = new LinkedHashMap<String, String>();
             var entryList = new ArrayList<Map.Entry>();
 
-            if(building.getFloors().get(0).getAreas().get(entry.getKey()).isContainsExit()) {
-                entryList.add(entry("E", setLabelForNeighbour(building.getFloors().get(0).getAreas().get(entry.getKey()).getExitDirection())));
+            if(building.getFloors().get(this.floorNumber).getAreas().get(entry.getKey()).isContainsExit()) {
+                entryList.add(entry("E", setLabelForNeighbour(building.getFloors().get(this.floorNumber).getAreas().get(entry.getKey()).getExitDirection())));
             }
 
-            var neighbour = building.getFloors().get(0).getNeighbours().get(entry.getKey());
+            var neighbour = building.getFloors().get(this.floorNumber).getNeighbours().get(entry.getKey());
 
             for (var n : neighbour) {
                 entryList.add(entry(n.getNeighbourId(), setLabelForNeighbour(n.getConnectionDirection())));
@@ -82,7 +84,7 @@ public class EvacuationPathCreator {
     }
 
     private void updateSigns(Scene scene){
-        for (var area : building.getFloors().get(0).getAreas().values()) {
+        for (var area : building.getFloors().get(this.floorNumber).getAreas().values()) {
             Label label = (Label) scene.lookup("#label-" + area.getId());
             label.setText(allActions.get(area.getId()).get(area.getAction()));
 
