@@ -3,7 +3,6 @@ package root.mocks;
 import root.models.Building;
 import root.models.ConnectionDirection;
 import root.models.Floor;
-import root.neo4j.Neo4jDriver;
 
 public class BuildingMocks {
     //     [0]

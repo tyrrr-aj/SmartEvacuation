@@ -9,11 +9,13 @@ public class Floor {
     private Map<Integer, Area> areas = new HashMap<>();
     private Map<Integer, List<Neighbour>> neighbours = new HashMap<>();
 
-    public Floor() {}
+    public Floor() {
+    }
 
     public Map<Integer, List<Neighbour>> getNeighbours() { return neighbours; }
 
     public Map<Integer, Area> getAreas() { return areas; }
+
 
     public void addArea(int id, boolean isInDanger){
         areas.put(id, new Area(id, isInDanger, null));

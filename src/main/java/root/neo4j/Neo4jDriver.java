@@ -2,6 +2,7 @@ package root.neo4j;
 
 import org.javatuples.Pair;
 import org.neo4j.driver.*;
+import org.neo4j.driver.Record;
 import root.geometry.Point;
 
 import java.util.*;
@@ -14,8 +15,8 @@ public class Neo4jDriver implements AutoCloseable {
     public Neo4jDriver() {
         driver = GraphDatabase.driver(
                 "bolt://localhost:7687",
+//                AuthTokens.basic( "neo4j", "password" )
                 AuthTokens.basic( "neo4j", "letMEin!" )
-//                AuthTokens.basic( "neo4j", "letMEin!" )
         );
 
     }
@@ -31,20 +32,32 @@ public class Neo4jDriver implements AutoCloseable {
 
     public void readQuery(String query) {
         try ( Session session = driver.session() ) {
-            session.readTransaction(new TransactionWork<String>()
-            {
-                @Override
-                public String execute( Transaction tx )
-                {
-                    Result result = tx.run(query);
-                    while(result.hasNext()) {
-                        var record = result.next();
-                        System.out.println(Integer.valueOf((String)record.fields().get(0).value().asMap().get("Name")));
-                        System.out.println(Integer.valueOf((String)record.fields().get(2).value().asMap().get("Name")));
-                    }
-                    return "Success";
+            session.readTransaction(tx -> {
+                Result result = tx.run(query);
+                while(result.hasNext()) {
+                    var record = result.next();
+                    System.out.println(Integer.valueOf((String)record.fields().get(0).value().asMap().get("Name")));
+                    System.out.println(Integer.valueOf((String)record.fields().get(2).value().asMap().get("Name")));
                 }
+                return "Success";
             });
+        }
+    }
+
+    private String orderedFloorsQuery() {
+        return "MATCH (s:IfcBuildingStorey)\n" +
+                "RETURN s.GlobalId\n" +
+                "ORDER BY s.Elevation";
+    }
+
+    public List<String> readOrderedFloors() {
+        try (Session session = driver.session()) {
+            var result = session.run(orderedFloorsQuery());
+            return result
+                    .stream()
+                    .map(Record::values)
+                    .map(values -> values.get(0).asString())
+                    .collect(Collectors.toList());
         }
     }
 
@@ -94,10 +107,10 @@ public class Neo4jDriver implements AutoCloseable {
     }
 
     private String areasWithCoordinatesQuery() {
-        return "MATCH path = (:IfcBuildingStorey {Name:'1. Obergeschoss'}) -[:ObjectPlacement]->(:IfcLocalPlacement) <-[:PlacementRelTo * ..]- (:IfcLocalPlacement) <-[:ObjectPlacement]- (space:IfcSpace)\n" +
+        return "MATCH path = (:IfcBuilding) -[:ObjectPlacement]->(:IfcLocalPlacement) <-[:PlacementRelTo * ..]- (:IfcLocalPlacement) <-[:ObjectPlacement]- (space:IfcSpace)\n" +
                 "\tWITH space, nodes(path)[2..-1] AS p\n" +
-                "\tMATCH (space) -[:Representation]-> (:IfcProductDefinitionShape) -[:Representations]-> (:IfcShapeRepresentation) -[:Items]-> (:IfcExtrudedAreaSolid) -[:SweptArea]-> (:IfcArbitraryClosedProfileDef) -[:OuterCurve]-> (pl:IfcPolyline) -[:Points]-> (point:IfcCartesianPoint)\n" +
-                "\tWITH space, p, collect(DISTINCT point) AS points\n" +
+                "\tMATCH (storey:IfcBuildingStorey) <-[:RelatingObject]- (:IfcRelAggregates) -[:RelatedObjects]-> (space) -[:Representation]-> (:IfcProductDefinitionShape) -[:Representations]-> (:IfcShapeRepresentation) -[:Items]-> (:IfcExtrudedAreaSolid) -[:SweptArea]-> (:IfcArbitraryClosedProfileDef) -[:OuterCurve]-> (pl:IfcPolyline) -[:Points]-> (point:IfcCartesianPoint)\n" +
+                "\tWITH storey, space, p, collect(DISTINCT point) AS points\n" +
                 "\tCALL {\n" +
                 "\t\tWITH p, points\n" +
                 "\t\tUNWIND p AS lp_coord\n" +
@@ -130,7 +143,7 @@ public class Neo4jDriver implements AutoCloseable {
                 "\t\tRETURN [p IN points | [coord_system[4] + coord_system[0] * p[0] + coord_system[2] * p[1],\n" +
                 "\t\t\t\t\t\t\tcoord_system[5] + coord_system[1] * p[0] + coord_system[3] * p[1]]] AS points_global\n" +
                 "\t}\n" +
-                "\tRETURN space.Name, space.GlobalId, points_global";
+                "\tRETURN space.Name, space.GlobalId, storey.GlobalId, points_global";
     }
 
     public List<AreaResult> readAreasWithCoordinates() {
@@ -142,19 +155,20 @@ public class Neo4jDriver implements AutoCloseable {
                 var rs = result.next();
                 var values = rs.values();
                 var spaceId = Integer.parseInt(values.get(0).asString());
-                List<Point> retrieved_coords = values.get(2)
+                var floorId = values.get(2).asString();
+                List<Point> retrieved_coords = values.get(3)
                         .asList(v -> v.asList(Value::asDouble))
                         .stream()
                         .map(coords -> new Point(coords.get(0), coords.get(1)))
                         .collect(Collectors.toList());
-                resultData.add(new AreaResult(spaceId, retrieved_coords));
+                resultData.add(new AreaResult(spaceId, floorId, retrieved_coords));
             }
             return resultData;
         }
     }
 
     public String doorsWithCoordinatesQuery() {
-        return "MATCH path = (:IfcBuildingStorey {Name:'1. Obergeschoss'}) -[:ObjectPlacement]->(:IfcLocalPlacement) <-[:PlacementRelTo * ..]- (:IfcLocalPlacement) <-[:ObjectPlacement]- (obj:IfcDoor)\n" +
+        return "MATCH path = (:IfcBuilding) -[:ObjectPlacement]->(:IfcLocalPlacement) <-[:PlacementRelTo * ..]- (:IfcLocalPlacement) <-[:ObjectPlacement]- (obj:IfcDoor)\n" +
                 "\tWITH obj, nodes(path)[2..-1] AS p\n" +
                 "\tCALL {\n" +
                 "\t\tWITH p\n" +

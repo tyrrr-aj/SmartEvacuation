@@ -20,4 +20,8 @@ public class Point {
     public double y() {
         return y;
     }
+
+    public boolean liesEarlierAlongLine(Point other, Vector direction) {
+        return direction.dot(this) < direction.dot(other);
+    }
 }

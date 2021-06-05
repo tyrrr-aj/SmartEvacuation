@@ -6,16 +6,20 @@ import root.models.Building;
 import root.models.ConnectionDirection;
 import root.models.Floor;
 
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 public class BuildingExtractor {
     private final Neo4jDriver neo4jDriver;
-
     private Building building;
+
+    private LinkedHashMap<String, Floor> floors;
     private Map<Integer, AreaResult> areasByName;
     private Map<String, Point> doorCoords;
+    private List<Triplet<Integer, Integer, ConnectionDirection>> connections;
+    private List<Integer> areasWithExit;
 
     public BuildingExtractor(Neo4jDriver neo4jDriver) {
         this.neo4jDriver = neo4jDriver;
@@ -23,21 +27,35 @@ public class BuildingExtractor {
 
     public Building extractBuilding() {
         building = new Building();
-        building.addFloor(new Floor());
 
-        var areaResults = extractAreas();
+        floors = extractFloors();
+        areasByName = extractAreas();
         doorCoords = extractDoors();
-        extractConnections(areaResults);
-        extractExits();
+        connections = extractConnections();
+        areasWithExit = extractExits();
+
+        addFloorsToBuilding();
+        addAreasToBuilding();
+        addConnectionsToBuilding();
+        addExitsToBuilding();
 
         return building;
     }
 
-    private List<AreaResult> extractAreas() {
-        var areaResults = neo4jDriver.readAreasWithCoordinates();
-        areaResults.forEach(areaResult -> building.getFloors().get(0).addArea(areaResult.getId(), false));
+    private LinkedHashMap<String, Floor> extractFloors() {
+        return neo4jDriver.readOrderedFloors()
+                .stream()
+                .collect(Collectors.toMap(
+                        floorId -> floorId,
+                        floorId -> new Floor(),
+                        (a, b) -> b,
+                        LinkedHashMap::new));
+    }
 
-        return areaResults;
+    private Map<Integer, AreaResult> extractAreas() {
+        return neo4jDriver.readAreasWithCoordinates()
+                .stream()
+                .collect(Collectors.toMap(AreaResult::getId, areaResult -> areaResult));
     }
 
     private Map<String, Point> extractDoors() {
@@ -47,33 +65,42 @@ public class BuildingExtractor {
                 .collect(Collectors.toMap(DoorResult::getGlobalId, DoorResult::getCoords));
     }
 
-    private void extractConnections(List<AreaResult> areaResults) {
-        areasByName = areaResults
-                .stream()
-                .collect(Collectors.toMap(AreaResult::getId, areaResult -> areaResult));
-
-        var connections = neo4jDriver.readConnectedSpaces();
-        connections
+    private List<Triplet<Integer, Integer, ConnectionDirection>> extractConnections() {
+        return neo4jDriver.readConnectedSpaces()
                 .entrySet()
                 .stream()
-                .filter(entry -> areasByName.containsKey(entry.getKey())) // necessary only while working on single floor
                 .flatMap(entry -> entry
                         .getValue()
                         .stream()
-                        .filter(rd -> areasByName.containsKey(rd.getValue0())) // necessary only while working on single floor
                         .map(rd -> new Triplet<>(
                                 entry.getKey(),
                                 rd.getValue0(),
                                 areasByName.get(entry.getKey()).getRelativeDirection(doorCoords.get(rd.getValue1()))))
                         )
-                .forEach(conn -> building.getFloors().get(0).createConnection(conn.getValue0(), conn.getValue1(), conn.getValue2()));
+                .collect(Collectors.toList());
     }
 
-    private void extractExits() {
-        var areasWithExit = neo4jDriver.readAreasWithExits();
-        areasWithExit
-                .stream()
-                .filter(areaId -> areasByName.containsKey(areaId)) // necessary only while working on single floor:
-                .forEach(areaId -> building.getFloors().get(0).updateArea(areaId, false, true, ConnectionDirection.NONE));
+    private List<Integer> extractExits() {
+        return neo4jDriver.readAreasWithExits();
+    }
+
+    private void addFloorsToBuilding() {
+        floors.values().forEach(floor -> building.addFloor(floor));
+    }
+
+    private void addAreasToBuilding() {
+        areasByName.values().forEach(areaResult -> floors.get(areaResult.getFloorId()).addArea(areaResult.getId(), false));
+    }
+
+    private void addConnectionsToBuilding() {
+        connections.forEach(conn -> getFloorOfAreaById(conn.getValue0()).createConnection(conn.getValue0(), conn.getValue1(), conn.getValue2()));
+    }
+
+    private void addExitsToBuilding() {
+        areasWithExit.forEach(areaId -> getFloorOfAreaById(areaId).updateArea(areaId, false, true, ConnectionDirection.NONE));
+    }
+
+    private Floor getFloorOfAreaById(int id) {
+        return floors.get(areasByName.get(id).getFloorId());
     }
 }

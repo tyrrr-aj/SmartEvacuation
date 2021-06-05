@@ -2,6 +2,7 @@ package root.neo4j;
 
 import root.geometry.GeometryUtils;
 import root.geometry.Point;
+import root.geometry.Vector;
 import root.models.ConnectionDirection;
 
 import java.util.ArrayList;
@@ -13,11 +14,13 @@ import java.util.stream.Collectors;
 
 public class AreaResult {
     private final int id;
+    private final String floorId;
     private List<Point> cornerCoordinates; // stored clockwise, starting from left upper corner
     private final Point centerCoord;
 
-    public AreaResult(int id, List<Point> cornerCoordinates) {
+    public AreaResult(int id, String floorId, List<Point> cornerCoordinates) {
         this.id = id;
+        this.floorId = floorId;
         this.centerCoord = findCenterCoord(cornerCoordinates);
         this.cornerCoordinates = getCornersInOrder(cornerCoordinates);
         limitCornersNumberToFour(); // workaround until corridors' splitting is implemented
@@ -25,6 +28,10 @@ public class AreaResult {
 
     public int getId() {
         return id;
+    }
+
+    public String getFloorId() {
+        return floorId;
     }
 
     public List<Point> getCornerCoordinates() {
@@ -82,6 +89,24 @@ public class AreaResult {
                 }
             }
         }
+    }
+
+    public Vector getHorizontalAxis() {
+        double leftX = (LeftUpperCorner().x() + LeftLowerCorner().x()) / 2;
+        double leftY = (LeftUpperCorner().y() + LeftLowerCorner().y()) / 2;
+        double rightX = (RightUpperCorner().x() + RightLowerCorner().x()) / 2;
+        double rightY = (RightUpperCorner().y() + RightLowerCorner().y()) / 2;
+
+        return new Vector(new double[] {rightX - leftX, rightY - leftY});
+    }
+
+    public Vector getVerticalAxisCoef() {
+        double upperX = (LeftUpperCorner().x() + RightUpperCorner().x()) / 2;
+        double upperY = (LeftUpperCorner().y() + RightUpperCorner().y()) / 2;
+        double lowerX = (LeftLowerCorner().x() + RightLowerCorner().x()) / 2;
+        double lowerY = (LeftLowerCorner().y() + RightLowerCorner().y()) / 2;
+
+        return new Vector(new double[] {lowerX - upperX, lowerY - upperY});
     }
 
     private Point LeftUpperCorner() {
