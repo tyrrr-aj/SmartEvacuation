@@ -1,6 +1,7 @@
 package root.neo4j;
 
 import root.geometry.GeometryUtils;
+import root.geometry.Line;
 import root.geometry.Point;
 import root.geometry.Vector;
 import root.models.ConnectionDirection;
@@ -15,7 +16,7 @@ import java.util.stream.Collectors;
 public class AreaResult {
     private final int id;
     private final String floorId;
-    private List<Point> cornerCoordinates; // stored clockwise, starting from left upper corner
+    protected List<Point> cornerCoordinates; // stored clockwise, starting from left upper corner
     private final Point centerCoord;
 
     public AreaResult(int id, String floorId, List<Point> cornerCoordinates) {
@@ -23,7 +24,7 @@ public class AreaResult {
         this.floorId = floorId;
         this.centerCoord = findCenterCoord(cornerCoordinates);
         this.cornerCoordinates = getCornersInOrder(cornerCoordinates);
-        limitCornersNumberToFour(); // workaround until corridors' splitting is implemented
+        limitCornersNumberToFour(); // workaround until non-rectangular areas splitting is implemented
     }
 
     public int getId() {
@@ -81,7 +82,7 @@ public class AreaResult {
                 }
             }
             else {
-                if (GeometryUtils.orient(ownCenter, LeftUpperCorner(), doorCoord) < 0) {
+                if (GeometryUtils.orient(ownCenter, LeftLowerCorner(), doorCoord) < 0) {
                     return ConnectionDirection.LEFT;
                 }
                 else {
@@ -91,37 +92,37 @@ public class AreaResult {
         }
     }
 
-    public Vector getHorizontalAxis() {
+    public Line getHorizontalAxis() {
         double leftX = (LeftUpperCorner().x() + LeftLowerCorner().x()) / 2;
         double leftY = (LeftUpperCorner().y() + LeftLowerCorner().y()) / 2;
         double rightX = (RightUpperCorner().x() + RightLowerCorner().x()) / 2;
         double rightY = (RightUpperCorner().y() + RightLowerCorner().y()) / 2;
 
-        return new Vector(new double[] {rightX - leftX, rightY - leftY});
+        return new Line(new Point(leftX, leftY), new Point(rightX, rightY));
     }
 
-    public Vector getVerticalAxisCoef() {
+    public Line getVerticalAxis() {
         double upperX = (LeftUpperCorner().x() + RightUpperCorner().x()) / 2;
         double upperY = (LeftUpperCorner().y() + RightUpperCorner().y()) / 2;
         double lowerX = (LeftLowerCorner().x() + RightLowerCorner().x()) / 2;
         double lowerY = (LeftLowerCorner().y() + RightLowerCorner().y()) / 2;
 
-        return new Vector(new double[] {lowerX - upperX, lowerY - upperY});
+        return new Line(new Point(upperX, upperY), new Point(lowerX, lowerY));
     }
 
-    private Point LeftUpperCorner() {
+    public Point LeftUpperCorner() {
         return cornerCoordinates.get(0);
     }
 
-    private Point RightUpperCorner() {
+    public Point RightUpperCorner() {
         return cornerCoordinates.get(1);
     }
 
-    private Point RightLowerCorner() {
+    public Point RightLowerCorner() {
         return cornerCoordinates.get(2);
     }
 
-    private Point LeftLowerCorner() {
+    public Point LeftLowerCorner() {
         return cornerCoordinates.get(3);
     }
 

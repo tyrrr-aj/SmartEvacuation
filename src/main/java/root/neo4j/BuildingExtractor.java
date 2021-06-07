@@ -1,14 +1,15 @@
 package root.neo4j;
 
+import com.google.common.collect.Maps;
+import org.javatuples.Pair;
 import org.javatuples.Triplet;
 import root.geometry.Point;
 import root.models.Building;
 import root.models.ConnectionDirection;
 import root.models.Floor;
+import root.neo4j.corridors.CorridorSplitter;
 
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class BuildingExtractor {
@@ -18,8 +19,11 @@ public class BuildingExtractor {
     private LinkedHashMap<String, Floor> floors;
     private Map<Integer, AreaResult> areasByName;
     private Map<String, Point> doorCoords;
-    private List<Triplet<Integer, Integer, ConnectionDirection>> connections;
+    private Map<Integer, List<Pair<Integer, Point>>> areasWithNeighsAndDoors;
+    private Map<Integer, List<ConnectionResult>> areasWithConnections;
+    private List<ConnectionResult> connections;
     private List<Integer> areasWithExit;
+    private List<Integer> corridors;
 
     public BuildingExtractor(Neo4jDriver neo4jDriver) {
         this.neo4jDriver = neo4jDriver;
@@ -31,8 +35,17 @@ public class BuildingExtractor {
         floors = extractFloors();
         areasByName = extractAreas();
         doorCoords = extractDoors();
-        connections = extractConnections();
+        areasWithNeighsAndDoors = extractNeighbours();
         areasWithExit = extractExits();
+
+        connections = new LinkedList<>();
+
+        areasWithConnections = computeConnections();
+        corridors = chooseCorridors();
+        splitCorridors();
+
+        fillConnectionsFromNonCorridors();
+        removeCorridorsFromAreas();
 
         addFloorsToBuilding();
         addAreasToBuilding();
@@ -65,23 +78,95 @@ public class BuildingExtractor {
                 .collect(Collectors.toMap(DoorResult::getGlobalId, DoorResult::getCoords));
     }
 
-    private List<Triplet<Integer, Integer, ConnectionDirection>> extractConnections() {
+    private Map<Integer, List<Pair<Integer, Point>>> extractNeighbours() {
         return neo4jDriver.readConnectedSpaces()
                 .entrySet()
                 .stream()
-                .flatMap(entry -> entry
-                        .getValue()
-                        .stream()
-                        .map(rd -> new Triplet<>(
-                                entry.getKey(),
-                                rd.getValue0(),
-                                areasByName.get(entry.getKey()).getRelativeDirection(doorCoords.get(rd.getValue1()))))
-                        )
-                .collect(Collectors.toList());
+                .collect(Collectors.toMap(Map.Entry::getKey,
+                        entry -> entry
+                                .getValue()
+                                .stream()
+                                .map(rd -> new Pair<>(
+                                        rd.getValue0(),
+                                        doorCoords.get(rd.getValue1())))
+                                .collect(Collectors.toList())
+                        ));
     }
 
     private List<Integer> extractExits() {
         return neo4jDriver.readAreasWithExits();
+    }
+
+    private Map<Integer, List<ConnectionResult>> computeConnections() {
+        return Maps.transformEntries(areasWithNeighsAndDoors,
+                (areaId, neighs) -> Objects.requireNonNull(neighs)
+                        .stream()
+                        .map(neighAndDoor -> new ConnectionResult(
+                                areasByName.get(areaId),
+                                areasByName.get(neighAndDoor.getValue0()),
+                                areasByName.get(areaId).getRelativeDirection(neighAndDoor.getValue1())))
+                        .collect(Collectors.toList()));
+    }
+
+    private List<Integer> chooseCorridors() {
+        return Maps.transformValues(areasWithConnections,
+                connectionResults -> connectionResults
+                        .stream()
+                        .collect(Collectors.groupingBy(ConnectionResult::getDirection))
+                        .values()
+                        .stream()
+                        .map(List::size)
+                        .collect(Collectors.toList()))
+                .entrySet()
+                .stream()
+                .filter(entry -> entry
+                        .getValue()
+                        .stream()
+                        .anyMatch(connNumber -> connNumber > 1))
+                .map(Map.Entry::getKey)
+                .collect(Collectors.toList());
+    }
+
+    private void splitCorridors() {
+        corridors.forEach(this::splitSingleCorridor);
+    }
+
+    private void splitSingleCorridor(int corridorId) {
+        CorridorSplitter splitter = new CorridorSplitter(
+                areasByName.get(corridorId),
+                areasWithNeighsAndDoors
+                        .get(corridorId)
+                        .stream()
+                        .collect(Collectors.toMap(
+                                neighAndDoor -> areasByName.get(neighAndDoor.getValue0()),
+                                Pair::getValue1)
+                        )
+        );
+
+        areasByName.putAll(splitter
+                .getAreas()
+                .stream()
+                .collect(Collectors.toMap(
+                        AreaResult::getId,
+                        area -> area
+                )));
+        connections.addAll(splitter.getConnections());
+    }
+
+    private void fillConnectionsFromNonCorridors() {
+        var connectionsNotInvolvingCorridors = Maps
+                .filterKeys(areasWithConnections, areaId -> !corridors.contains(areaId))
+                .values()
+                .stream()
+                .flatMap(Collection::stream)
+                .filter(conn -> !corridors.contains(conn.getDestArea()))
+                .collect(Collectors.toList());
+
+        connections.addAll(connectionsNotInvolvingCorridors);
+    }
+
+    private void removeCorridorsFromAreas() {
+        corridors.forEach(corridor -> areasByName.remove(corridor));
     }
 
     private void addFloorsToBuilding() {
@@ -93,7 +178,8 @@ public class BuildingExtractor {
     }
 
     private void addConnectionsToBuilding() {
-        connections.forEach(conn -> getFloorOfAreaById(conn.getValue0()).createConnection(conn.getValue0(), conn.getValue1(), conn.getValue2()));
+        connections.forEach(conn -> getFloorOfAreaById(conn.getSourceArea().getId())
+                .createConnection(conn.getSourceArea().getId(), conn.getDestArea().getId(), conn.getDirection()));
     }
 
     private void addExitsToBuilding() {
