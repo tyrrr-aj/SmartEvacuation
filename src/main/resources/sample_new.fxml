@@ -25,8 +25,8 @@
    </VBox>
    <GridPane id="grid" layoutX="80" layoutY="160" prefHeight="400.0" prefWidth="640.0">
    </GridPane>
-   <!--      <Label fx:id="floorNumber" />-->
    <Button id="reset-button" layoutX="80" layoutY="580" text="Reset" ButtonBar.buttonData="LEFT"/>
+   <Button id="floor-number" layoutX="520" layoutY="580" text="Floor #0" ButtonBar.buttonData="RIGHT" disable="true"/>
    <Button id="up-button" layoutX="600" layoutY="580" text="UP" ButtonBar.buttonData="RIGHT"/>
    <Button id="down-button" layoutX="650" layoutY="580" text="DOWN" ButtonBar.buttonData="RIGHT"/>
 </AnchorPane>

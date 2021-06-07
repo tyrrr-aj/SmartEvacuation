@@ -26,7 +26,7 @@ public class BuildingCreator {
     private Building building;
     private int startColumn = 0;
     private int startRow = 0;
-    private int floorNumber;
+    private int floorNumber = 0;
 
     public BuildingCreator(Scene scene, Building building) {
         this.scene = scene;
@@ -55,7 +55,7 @@ public class BuildingCreator {
     private void initializeBuilding() {
         GridPane gridPane = (GridPane) scene.lookup("#grid");
         gridPane.getChildren().clear();
-        printRoomWithNeighbours(building.getFloors().get(0).getAreas().entrySet().iterator().next().getKey());
+        printRoomWithNeighbours(building.getFloors().get(this.floorNumber).getAreas().entrySet().iterator().next().getKey());
     }
 
     private void printRoomWithNeighbours(int roomId) {
@@ -68,7 +68,7 @@ public class BuildingCreator {
                 roomColumnIndex = GridPane.getColumnIndex(roomImage);
                 roomRowIndex = GridPane.getRowIndex(roomImage);
             } else {
-                var neighbours = building.getFloors().get(0).getNeighbours().get(roomId);
+                var neighbours = building.getFloors().get(this.floorNumber).getNeighbours().get(roomId);
                 var connections = getListOfConnections(neighbours);
                 var image = getRoomImage(connections);
                 var rotate = getRoomRotation(connections);
@@ -82,7 +82,7 @@ public class BuildingCreator {
 
     private void addRoom(Image image, int rotate, int columnIndex, int rowIndex, int roomId) {
         GridPane gridPane = (GridPane) scene.lookup("#grid");
-        var neighbours = building.getFloors().get(0).getNeighbours().get(roomId);
+        var neighbours = building.getFloors().get(this.floorNumber).getNeighbours().get(roomId);
         ImageView imageView = new ImageView();
         imageView.addEventHandler(MouseEvent.MOUSE_CLICKED, event -> {
             try {
@@ -106,13 +106,13 @@ public class BuildingCreator {
         Integer clickedId = Integer.parseInt(event.getPickResult().getIntersectedNode().getId().split("-")[1]);
         Label label = (Label) scene.lookup("#label-" + clickedId);
 
-        if(building.getFloors().get(0).getAreas().get(clickedId).isInDanger()){
+        if(building.getFloors().get(this.floorNumber).getAreas().get(clickedId).isInDanger()){
             label.setTextFill(Color.web("#000000", 1));
-            building.getFloors().get(0).getAreas().get(clickedId).setIsInDanger(false);
+            building.getFloors().get(this.floorNumber).getAreas().get(clickedId).setIsInDanger(false);
             System.out.println(clickedId + " - no danger");
         } else{
             label.setTextFill(Color.web("#ff0000", 1));
-            building.getFloors().get(0).getAreas().get(clickedId).setIsInDanger(true);
+            building.getFloors().get(this.floorNumber).getAreas().get(clickedId).setIsInDanger(true);
             System.out.println(clickedId + " - danger");
         }
 
@@ -125,13 +125,15 @@ public class BuildingCreator {
 
         Font font = new Font(16);
         label.setFont(font);
-
+        if(building.getFloors().get(this.floorNumber).getAreas().get(roomId).isInDanger()) {
+            label.setTextFill(Color.web("#ff0000", 1));
+        }
         gridPane.add(label, columnIndex, rowIndex);
         GridPane.setHalignment(label, HPos.CENTER);
     }
 
     private void printNeighbours(int roomId, int roomColumnIndex, int roomRowIndex) {
-        var neighbours = building.getFloors().get(0).getNeighbours().get(roomId);
+        var neighbours = building.getFloors().get(this.floorNumber).getNeighbours().get(roomId);
         for (var neighbour : neighbours) {
             ImageView roomImage = (ImageView) scene.lookup("#room-" + roomId);
             if(roomImage != null) {
@@ -158,7 +160,7 @@ public class BuildingCreator {
                 }
 
                 try {
-                    var neighbours2 = building.getFloors().get(0).getNeighbours().get(neighbour.getNeighbourId());
+                    var neighbours2 = building.getFloors().get(this.floorNumber).getNeighbours().get(neighbour.getNeighbourId());
                     var connections = getListOfConnections(neighbours2);
                     var image = getRoomImage(connections);
                     var rotate = getRoomRotation(connections);
@@ -167,11 +169,11 @@ public class BuildingCreator {
                 } catch (Exception e) {
                     if(roomRowIndex < 0) {
                         this.startRow++;
-                        initializeBuilding();
+                        this.initializeBuilding();
                     }
                     if(roomColumnIndex < 0) {
                         this.startColumn++;
-                        initializeBuilding();
+                        this.initializeBuilding();
                     }
                 }
             }
@@ -242,8 +244,10 @@ public class BuildingCreator {
     }
 
     private void reset() throws Exception {
-        for(var area: building.getFloors().get(0).getAreas().values()) {
-            area.setIsInDanger(false);
+        for(var floor : building.getFloors()) {
+            for(var area: floor.getAreas().values()) {
+                area.setIsInDanger(false);
+            }
         }
         generateNewEvacuationPlan();
     }
@@ -261,18 +265,23 @@ public class BuildingCreator {
         });
     }
 
-    private void floorUp() {
+    private void floorUp() throws Exception {
         Button floor = (Button) scene.lookup("#floor-number");
-        if(floorNumber < building.getFloors().size()) {
-            floorNumber++;
+        if(this.floorNumber < this.building.getFloors().size() - 1) {
+            this.floorNumber++;
+            this.initializeBuilding();
+            this.generateNewEvacuationPlan();
         }
         floor.setText("Floor #" + String.valueOf(floorNumber));
+
     }
 
-    private void floorDown() {
+    private void floorDown() throws Exception {
         Button floor = (Button) scene.lookup("#floor-number");
-        if(floorNumber > 0) {
-            floorNumber--;
+        if(this.floorNumber > 0) {
+            this.floorNumber--;
+            this.initializeBuilding();
+            this.generateNewEvacuationPlan();
         }
         floor.setText("Floor #" + String.valueOf(floorNumber));
     }
@@ -280,19 +289,27 @@ public class BuildingCreator {
     private void createFloorButtons() {
         Button buttonUp = (Button) scene.lookup("#up-button");
         buttonUp.addEventHandler(MouseEvent.MOUSE_CLICKED, event -> {
-            floorUp();
+            try {
+                this.floorUp();
+            } catch (Exception e) {
+
+            }
         });
 
         Button buttonDown = (Button) scene.lookup("#down-button");
         buttonDown.addEventHandler(MouseEvent.MOUSE_CLICKED, event -> {
-            floorDown();
+            try {
+                this.floorDown();
+            } catch (Exception e) {
+
+            }
         });
     }
 
 
     private void generateNewEvacuationPlan() throws Exception {
 
-        Formula formula = new Formula(building);
+        Formula formula = new Formula(building, this.floorNumber);
         formula.generate();
 
         EvacuationSolver evacuationSolver = new EvacuationSolver(formula);
