@@ -159,7 +159,7 @@ public class BuildingExtractor {
                 .values()
                 .stream()
                 .flatMap(Collection::stream)
-                .filter(conn -> !corridors.contains(conn.getDestArea()))
+                .filter(conn -> !corridors.contains(conn.getDestArea().getId()))
                 .collect(Collectors.toList());
 
         connections.addAll(connectionsNotInvolvingCorridors);

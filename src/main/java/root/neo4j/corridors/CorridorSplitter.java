@@ -1,5 +1,6 @@
 package root.neo4j.corridors;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Streams;
 import org.javatuples.Pair;
 import root.geometry.GeometryUtils;
@@ -32,7 +33,7 @@ public class CorridorSplitter {
                 .stream()
                 .map(entry -> new LocalNeighbour(entry.getKey(), entry.getValue()))
                 .collect(Collectors.groupingBy(LocalNeighbour::getDirection));
-        neighGroups.values().forEach(this::sortNeighbourGroup);
+        neighGroups = sortedNeighbourGroups(neighGroups);
 
         topGroup = neighGroups.getOrDefault(ConnectionDirection.TOP, new ArrayList<>());
         bottomGroup = neighGroups.getOrDefault(ConnectionDirection.BOTTOM, new ArrayList<>());
@@ -73,8 +74,8 @@ public class CorridorSplitter {
                 SubAreaResultBuilder::setRUCorner,
                 SubAreaResultBuilder::setLBCorner,
                 SubAreaResultBuilder::setRBCorner,
-                SubAreaResult::setLeftNeighbour,
-                SubAreaResult::setRightNeighbour
+                SubAreaResult::setRightNeighbour,
+                SubAreaResult::setLeftNeighbour
         );
     }
 
@@ -83,10 +84,18 @@ public class CorridorSplitter {
                 leftGroup,
                 rightGroup,
                 corridor.getVerticalAxis(),
-                () -> verticalSlices
-                        .stream()
-                        .map(SubAreaResult::new)
-                        .toArray(SubAreaResult[]::new),
+                () -> {
+                    var newSlices = verticalSlices
+                            .stream()
+                            .map(SubAreaResult::new)
+                            .toArray(SubAreaResult[]::new);
+                    Streams.zip(Arrays.stream(newSlices).limit(newSlices.length - 1), Arrays.stream(newSlices).skip(1), Pair::new)
+                            .forEach(pair -> {
+                                pair.getValue0().setRightNeighbour(pair.getValue1());
+                                pair.getValue1().setLeftNeighbour(pair.getValue0());
+                            });
+                    return newSlices;
+                    },
                 r -> r,
                 (SubAreaResult[] currentRow, AreaResult neigh) -> currentRow[0].setLeftNeighbour(neigh),
                 (SubAreaResult[] currentRow, AreaResult neigh) -> currentRow[currentRow.length-1].setRightNeighbour(neigh),
@@ -149,86 +158,88 @@ public class CorridorSplitter {
                 secondGroupIndex += 1;
             }
 
-            else if (secondGroupIndex >= secondNeighGroup.size()) {
-                setFirstSideNeighbour.accept(newElement, firstNeighGroup.get(firstGroupIndex).getArea());
-
-                if (firstGroupIndex + 1 < firstNeighGroup.size()) {
-                    Point newTopSplit = getMiddlePoint(firstNeighGroup.get(firstGroupIndex).getDoorCoord(),
-                            firstNeighGroup.get(firstGroupIndex + 1).getDoorCoord());
-                    setFirstSideSecondaryCorner.accept(newElement, newTopSplit);
-                    setSecondSideSecondaryCorner.accept(newElement, axis.symmetricalPoint(newTopSplit));
-                    topLeftLastSplitPoint = newTopSplit;
-                }
-
-                firstGroupIndex += 1;
-            }
-
             else {
-                Point topNeighDoor = firstNeighGroup.get(firstGroupIndex).getDoorCoord();
-                Point bottomNeighDoor = secondNeighGroup.get(secondGroupIndex).getDoorCoord();
-
-                Point nextTopNeighDoor = firstGroupIndex + 1 < firstNeighGroup.size() ? firstNeighGroup.get(firstGroupIndex + 1).getDoorCoord() : null;
-                Point nextBottomNeighDoor = secondGroupIndex + 1 < secondNeighGroup.size() ? secondNeighGroup.get(secondGroupIndex + 1).getDoorCoord() : null;
-
-                if (nextTopNeighDoor != null
-                        && axis.pointLiesEarlierAlong(topNeighDoor, bottomNeighDoor)
-                        && axis.pointLiesEarlierAlong(nextTopNeighDoor, bottomNeighDoor)) {
+                if (secondGroupIndex >= secondNeighGroup.size()) {
                     setFirstSideNeighbour.accept(newElement, firstNeighGroup.get(firstGroupIndex).getArea());
 
-                    Point newTopSplit = getMiddlePoint(topNeighDoor, nextTopNeighDoor);
-                    setFirstSideSecondaryCorner.accept(newElement, newTopSplit);
-                    setSecondSideSecondaryCorner.accept(newElement, axis.symmetricalPoint(newTopSplit));
-                    topLeftLastSplitPoint = newTopSplit;
+                    if (firstGroupIndex + 1 < firstNeighGroup.size()) {
+                        Point newTopSplit = getMiddlePoint(firstNeighGroup.get(firstGroupIndex).getDoorCoord(),
+                                firstNeighGroup.get(firstGroupIndex + 1).getDoorCoord());
+                        setFirstSideSecondaryCorner.accept(newElement, newTopSplit);
+                        setSecondSideSecondaryCorner.accept(newElement, axis.symmetricalPoint(newTopSplit));
+                        topLeftLastSplitPoint = newTopSplit;
+                    }
 
                     firstGroupIndex += 1;
                 }
 
-                else if (nextBottomNeighDoor != null
-                        && axis.pointLiesEarlierAlong(bottomNeighDoor, topNeighDoor)
-                        && axis.pointLiesEarlierAlong(nextBottomNeighDoor, topNeighDoor)) {
-                    setSecondSideNeighbour.accept(newElement, secondNeighGroup.get(secondGroupIndex).getArea());
-
-                    Point newTopSplit  = axis.symmetricalPoint(getMiddlePoint(bottomNeighDoor, nextBottomNeighDoor));
-                    setFirstSideSecondaryCorner.accept(newElement, newTopSplit);
-                    setSecondSideSecondaryCorner.accept(newElement, axis.symmetricalPoint(newTopSplit));
-                    topLeftLastSplitPoint = newTopSplit;
-
-                    secondGroupIndex += 1;
-                }
-
                 else {
-                    setFirstSideNeighbour.accept(newElement, firstNeighGroup.get(firstGroupIndex).getArea());
-                    setSecondSideNeighbour.accept(newElement, secondNeighGroup.get(secondGroupIndex).getArea());
+                    Point topNeighDoor = firstNeighGroup.get(firstGroupIndex).getDoorCoord();
+                    Point bottomNeighDoor = secondNeighGroup.get(secondGroupIndex).getDoorCoord();
 
-                    if (nextTopNeighDoor != null && nextBottomNeighDoor == null) {
+                    Point nextTopNeighDoor = firstGroupIndex + 1 < firstNeighGroup.size() ? firstNeighGroup.get(firstGroupIndex + 1).getDoorCoord() : null;
+                    Point nextBottomNeighDoor = secondGroupIndex + 1 < secondNeighGroup.size() ? secondNeighGroup.get(secondGroupIndex + 1).getDoorCoord() : null;
+
+                    if (nextTopNeighDoor != null
+                            && axis.pointLiesEarlierAlong(topNeighDoor, bottomNeighDoor)
+                            && axis.pointLiesEarlierAlong(nextTopNeighDoor, bottomNeighDoor)) {
+                        setFirstSideNeighbour.accept(newElement, firstNeighGroup.get(firstGroupIndex).getArea());
+
                         Point newTopSplit = getMiddlePoint(topNeighDoor, nextTopNeighDoor);
                         setFirstSideSecondaryCorner.accept(newElement, newTopSplit);
                         setSecondSideSecondaryCorner.accept(newElement, axis.symmetricalPoint(newTopSplit));
                         topLeftLastSplitPoint = newTopSplit;
+
+                        firstGroupIndex += 1;
                     }
-                    else if (nextTopNeighDoor == null && nextBottomNeighDoor != null) {
-                        Point newTopSplit = axis.symmetricalPoint(getMiddlePoint(bottomNeighDoor, nextBottomNeighDoor));
+
+                    else if (nextBottomNeighDoor != null
+                            && axis.pointLiesEarlierAlong(bottomNeighDoor, topNeighDoor)
+                            && axis.pointLiesEarlierAlong(nextBottomNeighDoor, topNeighDoor)) {
+                        setSecondSideNeighbour.accept(newElement, secondNeighGroup.get(secondGroupIndex).getArea());
+
+                        Point newTopSplit  = axis.symmetricalPoint(getMiddlePoint(bottomNeighDoor, nextBottomNeighDoor));
                         setFirstSideSecondaryCorner.accept(newElement, newTopSplit);
                         setSecondSideSecondaryCorner.accept(newElement, axis.symmetricalPoint(newTopSplit));
                         topLeftLastSplitPoint = newTopSplit;
+
+                        secondGroupIndex += 1;
                     }
-                    else if (nextTopNeighDoor != null && nextBottomNeighDoor != null) {
-                        if (axis.pointLiesEarlierAlong(nextTopNeighDoor, nextBottomNeighDoor)) {
+
+                    else {
+                        setFirstSideNeighbour.accept(newElement, firstNeighGroup.get(firstGroupIndex).getArea());
+                        setSecondSideNeighbour.accept(newElement, secondNeighGroup.get(secondGroupIndex).getArea());
+
+                        if (nextTopNeighDoor != null && nextBottomNeighDoor == null) {
                             Point newTopSplit = getMiddlePoint(topNeighDoor, nextTopNeighDoor);
                             setFirstSideSecondaryCorner.accept(newElement, newTopSplit);
                             setSecondSideSecondaryCorner.accept(newElement, axis.symmetricalPoint(newTopSplit));
                             topLeftLastSplitPoint = newTopSplit;
                         }
-                        else {
+                        else if (nextTopNeighDoor == null && nextBottomNeighDoor != null) {
                             Point newTopSplit = axis.symmetricalPoint(getMiddlePoint(bottomNeighDoor, nextBottomNeighDoor));
                             setFirstSideSecondaryCorner.accept(newElement, newTopSplit);
                             setSecondSideSecondaryCorner.accept(newElement, axis.symmetricalPoint(newTopSplit));
                             topLeftLastSplitPoint = newTopSplit;
                         }
-                    }
+                        else if (nextTopNeighDoor != null && nextBottomNeighDoor != null) {
+                            if (axis.pointLiesEarlierAlong(nextTopNeighDoor, nextBottomNeighDoor)) {
+                                Point newTopSplit = getMiddlePoint(topNeighDoor, nextTopNeighDoor);
+                                setFirstSideSecondaryCorner.accept(newElement, newTopSplit);
+                                setSecondSideSecondaryCorner.accept(newElement, axis.symmetricalPoint(newTopSplit));
+                                topLeftLastSplitPoint = newTopSplit;
+                            }
+                            else {
+                                Point newTopSplit = axis.symmetricalPoint(getMiddlePoint(bottomNeighDoor, nextBottomNeighDoor));
+                                setFirstSideSecondaryCorner.accept(newElement, newTopSplit);
+                                setSecondSideSecondaryCorner.accept(newElement, axis.symmetricalPoint(newTopSplit));
+                                topLeftLastSplitPoint = newTopSplit;
+                            }
+                        }
 
-                    firstGroupIndex += 1;
-                    secondGroupIndex += 1;
+                        firstGroupIndex += 1;
+                        secondGroupIndex += 1;
+                    }
                 }
             }
 
@@ -246,9 +257,26 @@ public class CorridorSplitter {
         return accumulator;
     }
 
-    private void sortNeighbourGroup(List<LocalNeighbour> neighbourGroup) {
-        neighbourGroup.sort((neigh1, neigh2) ->
-                        GeometryUtils.orient(neigh1.getDoorCoord(), corridor.getCenterCoord(), neigh2.getDoorCoord()));
+    private Map<ConnectionDirection, List<LocalNeighbour>> sortedNeighbourGroups(Map<ConnectionDirection, List<LocalNeighbour>> neighbourGroups) {
+        return neighbourGroups
+                .entrySet()
+                .stream()
+                .collect(Collectors.toMap(
+                        Map.Entry::getKey,
+                        directionAndNeighs -> sortedNeighGroup(directionAndNeighs.getValue(),
+                                directionAndNeighs.getKey() == ConnectionDirection.TOP
+                                        || directionAndNeighs.getKey() == ConnectionDirection.LEFT)
+                ));
+    }
+
+    private List<LocalNeighbour> sortedNeighGroup(List<LocalNeighbour> group, boolean isReversed) {
+        List<LocalNeighbour> sortedGroup = group
+                .stream()
+                .sorted((neigh1, neigh2) ->
+                GeometryUtils.orient(neigh1.getDoorCoord(), corridor.getCenterCoord(), neigh2.getDoorCoord()))
+                .collect(Collectors.toList());
+
+        return isReversed ? Lists.reverse(sortedGroup) : sortedGroup;
     }
 
     private Point getMiddlePoint(Point P1, Point P2) {

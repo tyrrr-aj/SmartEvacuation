@@ -16,7 +16,7 @@ public class SubAreaResult extends AreaResult {
 
     private static int nextSuffix = 0;
 
-    public SubAreaResult(AreaResult sourceAreaResult, List<Point> cornerCoordinates, AreaResult neighbour, AreaResult bottomNeighbour, AreaResult leftNeighbour, AreaResult rightNeighbour) {
+    SubAreaResult(AreaResult sourceAreaResult, List<Point> cornerCoordinates, AreaResult neighbour, AreaResult bottomNeighbour, AreaResult leftNeighbour, AreaResult rightNeighbour) {
         super(sourceAreaResult.getId() * 10 + nextSuffix, sourceAreaResult.getFloorId(), cornerCoordinates);
         topNeighbour = neighbour;
         this.bottomNeighbour = bottomNeighbour;
@@ -95,22 +95,22 @@ public class SubAreaResult extends AreaResult {
 
         if (topNeighbour != null) {
             connections.add(new ConnectionResult(this, topNeighbour, ConnectionDirection.TOP));
-            connections.add(new ConnectionResult(this, topNeighbour, ConnectionDirection.TOP));
+            connections.add(new ConnectionResult(topNeighbour, this, ConnectionDirection.BOTTOM));
         }
 
         if (bottomNeighbour != null) {
             connections.add(new ConnectionResult(this, bottomNeighbour, ConnectionDirection.BOTTOM));
-            connections.add(new ConnectionResult(this, bottomNeighbour, ConnectionDirection.BOTTOM));
+            connections.add(new ConnectionResult(bottomNeighbour, this, ConnectionDirection.TOP));
         }
 
         if (leftNeighbour != null) {
             connections.add(new ConnectionResult(this, leftNeighbour, ConnectionDirection.LEFT));
-            connections.add(new ConnectionResult(this, leftNeighbour, ConnectionDirection.LEFT));
+            connections.add(new ConnectionResult(leftNeighbour, this, ConnectionDirection.RIGHT));
         }
 
         if (rightNeighbour != null) {
             connections.add(new ConnectionResult(this, rightNeighbour, ConnectionDirection.RIGHT));
-            connections.add(new ConnectionResult(this, rightNeighbour, ConnectionDirection.RIGHT));
+            connections.add(new ConnectionResult(rightNeighbour, this, ConnectionDirection.LEFT));
         }
 
         return connections;

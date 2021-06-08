@@ -34,7 +34,7 @@ public class Line { // y = ax + b
     }
 
     private Vector directionVector() {
-        double[] coords = isVertical ? new double[] {1.0, a + b} : new double[] {0.0, -1.0};
+        double[] coords = isVertical ? new double[] {0.0, -1.0} : new double[] {1.0, a};
         return new Vector(coords);
     }
 }

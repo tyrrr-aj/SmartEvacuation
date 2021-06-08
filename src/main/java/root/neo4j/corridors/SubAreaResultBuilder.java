@@ -5,7 +5,7 @@ import root.neo4j.AreaResult;
 
 import java.util.List;
 
-public class SubAreaResultBuilder {
+class SubAreaResultBuilder {
     private final AreaResult sourceAreaResult;
     private final List<Point> cornerCoordinates;
 
