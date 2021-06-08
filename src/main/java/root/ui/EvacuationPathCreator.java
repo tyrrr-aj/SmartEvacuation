@@ -30,14 +30,14 @@ public class EvacuationPathCreator {
     }
 
     public void init() throws Exception {
-        generateActions();
-        formula = new Formula(building, this.floorNumber);
-        formula.generate();
-        evacuationSolver = new EvacuationSolver(formula);
-        evacuationSolver.solve();
-        evacuationSolver.printEvacuationPlan();
-        formula.print();
-        updateSigns(scene);
+            generateActions();
+            formula = new Formula(building, this.floorNumber);
+            formula.generate();
+            evacuationSolver = new EvacuationSolver(formula);
+            evacuationSolver.solve();
+            evacuationSolver.printEvacuationPlan();
+            formula.print();
+            updateSigns(scene);
     }
 
     private void generateActions() {
@@ -83,7 +83,8 @@ public class EvacuationPathCreator {
         return sign;
     }
 
-    private void updateSigns(Scene scene){
+    private void updateSigns(Scene scene) {
+        System.out.println("UPDATEEE");
         for (var area : building.getFloors().get(this.floorNumber).getAreas().values()) {
             Label label = (Label) scene.lookup("#label-" + area.getId());
             label.setText(allActions.get(area.getId()).get(area.getAction()));

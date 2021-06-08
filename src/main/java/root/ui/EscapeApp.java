@@ -30,6 +30,7 @@ public class EscapeApp extends Application {
         stage.setScene(scene);
         stage.setResizable(true);
         stage.show();
+        System.out.println("SHOWWW");
     }
 
     public static void main(String[] args) {

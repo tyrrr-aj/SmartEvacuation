@@ -270,7 +270,11 @@ public class BuildingCreator {
         if(this.floorNumber < this.building.getFloors().size() - 1) {
             this.floorNumber++;
             this.initializeBuilding();
-            this.generateNewEvacuationPlan();
+            try {
+                this.generateNewEvacuationPlan();
+            } catch (Exception e) {
+                this.generateNewEvacuationPlan();
+            }
         }
         floor.setText("Floor #" + String.valueOf(floorNumber));
 
@@ -281,7 +285,11 @@ public class BuildingCreator {
         if(this.floorNumber > 0) {
             this.floorNumber--;
             this.initializeBuilding();
-            this.generateNewEvacuationPlan();
+            try {
+                this.generateNewEvacuationPlan();
+            } catch (Exception e) {
+                this.generateNewEvacuationPlan();
+            }
         }
         floor.setText("Floor #" + String.valueOf(floorNumber));
     }
@@ -306,9 +314,7 @@ public class BuildingCreator {
         });
     }
 
-
     private void generateNewEvacuationPlan() throws Exception {
-
         Formula formula = new Formula(building, this.floorNumber);
         formula.generate();
 

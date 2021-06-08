@@ -64,24 +64,47 @@ public class EvacuationSolver {
             return;
         }
 
-        for (Map.Entry<Integer, Area> entry : formula.getBuilding().getFloors().get(this.floorNumber).getAreas().entrySet()) {
-            Integer roomId = entry.getKey();
+        var dangerInLowerFloor = false;
 
-            if(formula.getBuilding().getFloors().get(this.floorNumber).getAreas().get(roomId).isContainsExit()) {
-                continue;
+        for(int i = this.floorNumber-1; i >= 0; i--) {
+            var areas = formula.getBuilding().getFloors().get(i).getAreas();
+            for (Map.Entry<Integer, Area> entry : areas.entrySet()) {
+                Integer roomId = entry.getKey();
+                var room = areas.get(roomId);
+                if (room.isContainsExit() && room.isInDanger()) {
+                    dangerInLowerFloor = true;
+                    break;
+                }
             }
+        }
 
-            System.out.print("Area " + roomId + ": ");
-            if(problem.model(vars.get(formula.getVarNameStay(roomId)))) {
-                System.out.println("stay");
+        if(dangerInLowerFloor == true) {
+            for (Map.Entry<Integer, Area> entry : formula.getBuilding().getFloors().get(this.floorNumber).getAreas().entrySet()) {
+                Integer roomId = entry.getKey();
                 formula.getBuilding().getFloors().get(this.floorNumber).getAreas().get(roomId).setAction("S");
             }
-            else {
-                for (var neigh : formula.getBuilding().getFloors().get(this.floorNumber).getNeighbours().get(entry.getKey())) {
-                    var neighId = neigh.getNeighbourId();
-                    if(problem.model(vars.get(formula.getVarNameMove(roomId, neighId)))){
-                        System.out.println("move to area " + neighId);
-                        formula.getBuilding().getFloors().get(this.floorNumber).getAreas().get(roomId).setAction(neighId.toString());
+        } else {
+            for (Map.Entry<Integer, Area> entry : formula.getBuilding().getFloors().get(this.floorNumber).getAreas().entrySet()) {
+                Integer roomId = entry.getKey();
+                var room = formula.getBuilding().getFloors().get(this.floorNumber).getAreas().get(roomId);
+                if (room.isContainsExit()) {
+                    if(room.getAction().equals("S")) {
+                        room.setAction("E");
+                    } else {
+                        continue;
+                    }
+                }
+
+//                System.out.print("Area " + roomId + ": ");
+                if (problem.model(vars.get(formula.getVarNameStay(roomId)))) {
+                    System.out.println("GET STAY");
+                    formula.getBuilding().getFloors().get(this.floorNumber).getAreas().get(roomId).setAction("S");
+                } else {
+                    for (var neigh : formula.getBuilding().getFloors().get(this.floorNumber).getNeighbours().get(entry.getKey())) {
+                        var neighId = neigh.getNeighbourId();
+                        if (problem.model(vars.get(formula.getVarNameMove(roomId, neighId)))) {
+                            formula.getBuilding().getFloors().get(this.floorNumber).getAreas().get(roomId).setAction(neighId.toString());
+                        }
                     }
                 }
             }
