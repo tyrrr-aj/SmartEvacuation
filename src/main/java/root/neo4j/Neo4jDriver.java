@@ -3,6 +3,7 @@ package root.neo4j;
 import org.javatuples.Pair;
 import org.neo4j.driver.*;
 import org.neo4j.driver.Record;
+import root.config.Neo4jConfig;
 import root.geometry.Point;
 
 import java.util.*;
@@ -11,18 +12,14 @@ import java.util.stream.Collectors;
 
 public class Neo4jDriver implements AutoCloseable {
     private final Driver driver;
+    private final SessionConfig configWithDb;
 
-    public Neo4jDriver() {
+    public Neo4jDriver(Neo4jConfig config) {
         driver = GraphDatabase.driver(
-                "bolt://localhost:7687",
-                AuthTokens.basic( "neo4j", "password" )
-//                AuthTokens.basic( "neo4j", "letMEin!" )
+                config.getUri(),
+                AuthTokens.basic(config.getUser(), config.getPassword())
         );
-
-    }
-
-    public Neo4jDriver( String uri, String user, String password ) {
-        driver = GraphDatabase.driver( uri, AuthTokens.basic( user, password ) );
+        configWithDb = SessionConfig.forDatabase(config.getDatabaseName());
     }
 
     @Override
@@ -31,7 +28,7 @@ public class Neo4jDriver implements AutoCloseable {
     }
 
     public void readQuery(String query) {
-        try ( Session session = driver.session() ) {
+        try ( Session session = driver.session(configWithDb) ) {
             session.readTransaction(tx -> {
                 Result result = tx.run(query);
                 while(result.hasNext()) {
@@ -51,7 +48,7 @@ public class Neo4jDriver implements AutoCloseable {
     }
 
     public List<String> readOrderedFloors() {
-        try (Session session = driver.session()) {
+        try (Session session = driver.session(configWithDb)) {
             var result = session.run(orderedFloorsQuery());
             return result
                     .stream()
@@ -67,7 +64,7 @@ public class Neo4jDriver implements AutoCloseable {
     }
 
     public Map<Integer, List<Pair<Integer, String>>> readConnectedSpaces() {
-        try (Session session = driver.session()) {
+        try (Session session = driver.session(configWithDb)) {
             var result = session.run(connectedSpacesQuery());
             Map<Integer, List<Pair<Integer, String>>> connectedRooms = new HashMap<>();
             while (result.hasNext()) {
@@ -93,7 +90,7 @@ public class Neo4jDriver implements AutoCloseable {
     }
 
     public List<Integer> readAreasWithExits() {
-        try (Session session = driver.session())
+        try (Session session = driver.session(configWithDb))
         {
             var result = session.run(areasWithExitQuery());
             var roomsWithExits = new ArrayList<Integer>();
@@ -147,7 +144,7 @@ public class Neo4jDriver implements AutoCloseable {
     }
 
     public List<AreaResult> readAreasWithCoordinates() {
-        try (Session session = driver.session())
+        try (Session session = driver.session(configWithDb))
         {
             var result = session.run(areasWithCoordinatesQuery());
             var resultData = new ArrayList<AreaResult>();
@@ -203,7 +200,7 @@ public class Neo4jDriver implements AutoCloseable {
     }
 
     public List<DoorResult> readDoorsWithCoordinates() {
-        try (Session session = driver.session())
+        try (Session session = driver.session(configWithDb))
         {
             var result = session.run(doorsWithCoordinatesQuery());
             var resultData = new ArrayList<DoorResult>();
@@ -218,29 +215,4 @@ public class Neo4jDriver implements AutoCloseable {
             return resultData;
         }
     }
-
-    public static void main( String... args )
-        {
-            var uri = "bolt://localhost:7687";
-            var user = "neo4j";
-            var password = "letMEin!";
-
-            try ( Neo4jDriver neo4jDriver = new Neo4jDriver( uri, user, password ) )
-            {
-                System.out.println("=======================");
-                var roomsWithCoordinates = neo4jDriver.readAreasWithCoordinates();
-                for (var c : roomsWithCoordinates) {
-                    System.out.println(c);
-                }
-                System.out.println("=======================");
-                var roomsWithExits = neo4jDriver.readAreasWithExits();
-                for (var c : roomsWithExits) {
-                    System.out.println(c);
-                }
-                System.out.println("=======================");
-                var connectedRooms = neo4jDriver.readConnectedSpaces();
-                System.out.println(connectedRooms);
-                System.out.println("=======================");
-            }
-        }
 }

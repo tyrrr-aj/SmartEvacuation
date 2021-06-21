@@ -5,6 +5,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
+import root.config.ConfigReader;
 import root.mocks.BuildingMocks;
 import root.models.Building;
 import root.neo4j.BuildingExtractor;
@@ -20,7 +21,9 @@ public class EscapeApp extends Application {
         Parent root = loader.load(getClass().getClassLoader().getResource("sample_new.fxml"));
         Scene scene = new Scene(root, 800, 630);
 
-        BuildingExtractor buildingExtractor = new BuildingExtractor(new Neo4jDriver());
+        ConfigReader configReader = new ConfigReader();
+
+        BuildingExtractor buildingExtractor = new BuildingExtractor(new Neo4jDriver(configReader.getNeo4jConfig()));
         building = buildingExtractor.extractBuilding();
 //        building = BuildingMocks.getSmallBuilding2();
         BuildingCreator buildingCreator = new BuildingCreator(scene, building);

@@ -7,6 +7,31 @@ import copy
 import os
 import stat
 import subprocess
+import configparser
+from neo4j import GraphDatabase
+
+
+####################################################
+# Read config
+####################################################
+
+config = configparser.ConfigParser()
+
+with open('../config.cfg') as cfg_file:
+    config.read_file(cfg_file)
+
+ifc_path = config['IFC']['ifc_path']
+path_ne4j_root = config['Neo4j']['neo4j_root']
+
+db_name = config['Neo4j']['db_name']
+
+uri = config['Neo4j']['uri']
+user = config['Neo4j']['user']
+password = config['Neo4j']['password']
+
+####################################################
+# Start processing
+####################################################
 
 
 def typeDict(key):
@@ -33,20 +58,7 @@ print("Start!")
 print(time.strftime("%Y/%m/%d %H:%M:%S", time.strptime(time.ctime())))
 log1 = str(time.strftime("%Y/%m/%d %H:%M:%S", time.strptime(time.ctime()))) + " Start "
 
-####################################################
-# IFC path
-####################################################
 
-# ifc_path = "ifc_files/IfcOpenHouse_original.ifc"
-# ifc_path = "ifc_files/191225_TE-Bld_zone_GEO.ifc"
-ifc_path = "ifc_files/231110AC11-Institute-Var-2-IFC.ifc"
-
-####################################################
-# neo4j root path
-####################################################
-
-# path_ne4j_root = 'C:/Users/adams/.Neo4jDesktop/relate-data/dbmss/dbms-302c3856-1f2c-4e22-98ac-2a09f093e1ef'
-path_ne4j_root = '/Users/Grzegorz/Library/Application Support/Neo4j Desktop/Application/relate-data/dbmss/dbms-06ce48b3-cf64-43c5-bf0e-44066308ae03'
 ####################################################
 # Nodes and Edges list create
 ####################################################
@@ -163,7 +175,23 @@ with open(csv_base_path + "Edges.csv", 'w', newline="", encoding='utf_8_sig') as
     writer.writerows(edges)
 
 ####################################################
-# neo4j-import_setting.txt create
+# neo4j database creation/clearing
+####################################################
+
+def dropdb(tx):
+    tx.run(f'DROP DATABASE {db_name} IF EXISTS')
+
+def createdb(tx):
+    tx.run(f'CREATE DATABASE {db_name}')
+
+driver = GraphDatabase.driver(uri, auth=(user, password))
+with driver.session() as session:
+    session.write_transaction(dropdb)
+    session.write_transaction(createdb)
+
+
+####################################################
+# neo4j-import_setting.bat/sh/txt create
 ####################################################
 
 if os.name == 'nt':
@@ -190,6 +218,7 @@ full_path = path_ne4j_root + file_relative_path
 with open(full_path, mode="w") as f:
     f.write('cd ' + path_ne4j_root + '/bin/\n')
     f.write('neo4j-admin import ' + line_break + '\n')
+    f.write(f' --database={db_name}' + line_break + '\n')
     for s_cls in cls_list:
         f.write(" --nodes=" + os.path.join("importer_csv", s_cls + ".csv") + " " + line_break + '\n')
     f.write(" --relationships=" + os.path.join("importer_csv", "Edges.csv"))
@@ -198,7 +227,7 @@ with open(full_path, mode="w") as f:
 # log
 ####################################################
 
-print("IFC parsing and intermidiate files generation done in ", round(time.time() - start))
+print("IFC parsing and intermediate files generation done in ", round(time.time() - start))
 print(time.strftime("%Y/%m/%d %H:%M:%S", time.strptime(time.ctime())))
 log2 = str(round(time.time() - start)) + "sec.\n" + \
     str(time.strftime("%Y/%m/%d %H:%M:%S", time.strptime(time.ctime()))) + " IFC parsing and intermidiate files generation done"

@@ -5,3 +5,31 @@ Nodes_49663 ,Edges_67835
 2021/04/26 16:40:31 IFC parsing and intermidiate files generation done
 44sec.
 2021/04/26 16:41:15 Import done
+ifc_files/231110AC11-Institute-Var-2-IFC.ifc
+Nodes_49663 ,Edges_67835
+2021/06/21 15:52:46 Start 
+41sec.
+2021/06/21 15:53:27 IFC parsing and intermidiate files generation done
+27sec.
+2021/06/21 15:53:54 Import done
+ifc_files/231110AC11-Institute-Var-2-IFC.ifc
+Nodes_49663 ,Edges_67835
+2021/06/21 15:55:50 Start 
+42sec.
+2021/06/21 15:56:32 IFC parsing and intermidiate files generation done
+31sec.
+2021/06/21 15:57:03 Import done
+ifc_files/231110AC11-Institute-Var-2-IFC.ifc
+Nodes_49663 ,Edges_67835
+2021/06/21 17:04:16 Start 
+41sec.
+2021/06/21 17:04:57 IFC parsing and intermidiate files generation done
+27sec.
+2021/06/21 17:05:23 Import done
+ifc_files/231110AC11-Institute-Var-2-IFC.ifc
+Nodes_49663 ,Edges_67835
+2021/06/21 17:27:01 Start 
+54sec.
+2021/06/21 17:27:56 IFC parsing and intermidiate files generation done
+33sec.
+2021/06/21 17:28:28 Import done
