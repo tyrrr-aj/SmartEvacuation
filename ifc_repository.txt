@@ -1,0 +1,6 @@
+Główne repozytorium:
+http://openifcmodel.cs.auckland.ac.nz/Model
+
+Wykorzystane modele:
+http://openifcmodel.cs.auckland.ac.nz/Model/Details/110
+http://openifcmodel.cs.auckland.ac.nz/Model/Details/304
