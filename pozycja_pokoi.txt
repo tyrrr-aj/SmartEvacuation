@@ -1,5 +1,0 @@
-MATCH (s1:IfcSpace)--(b1:IfcRelSpaceBoundary)--(:IfcDoor)--(b2:IfcRelSpaceBoundary)--(s2:IfcSpace)--(:IfcRelAggregates)--(storey:IfcBuildingStorey)
-	CALL apoc.create.vRelationship(s1,'IS_CONNECTED',{},s2) YIELD rel
-	RETURN s1, rel, s2, storey.Elevation
-
-ObjectPlacement -> RelativePlacement -> Location -> X, Y, Z
