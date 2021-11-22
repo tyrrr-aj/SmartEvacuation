@@ -27,7 +27,7 @@ public class Floor {
 
     public void updateArea(Integer id, boolean isInDanger, boolean containsExit, ConnectionDirection exitDirection){
         areas.get(id).setIsInDanger(isInDanger);
-        areas.get(id).setContainsExit(containsExit);
+        areas.get(id).setContainsDirectExit(containsExit);
         areas.get(id).setExitDirection(exitDirection);
     }
 
@@ -66,5 +66,12 @@ public class Floor {
 
         System.out.println("\n");
 
+    }
+
+    public boolean containsDirectExit() {
+        return areas
+                .values()
+                .stream()
+                .anyMatch(Area::isContainsDirectExit);
     }
 }

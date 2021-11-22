@@ -1,5 +1,7 @@
 package root.models;
 
+import org.javatuples.Pair;
+
 import java.util.*;
 
 public class Building {
@@ -14,5 +16,14 @@ public class Building {
 
     public void addFloor(Floor floor) {
         floors.add(floor);
+    }
+
+    public int getLowestFloorIdWithDirectExit() {
+        for (int i = 0; i < floors.size(); i++) {
+            if (floors.get(i).containsDirectExit()) {
+                return i;
+            }
+        }
+        return 0;
     }
 }

@@ -91,8 +91,8 @@ public class Formula {
     private void markDanger(){
         for (Map.Entry<Integer, Area> entry : building.getFloors().get(this.floorNumber).getAreas().entrySet()){
             Integer newVar = addVar(getVarNameDanger(entry.getValue().getId()));
-            int danger = entry.getValue().isInDanger() == true ? 1 : -1;
-            addClause(new int[] {danger*newVar});
+            int danger = entry.getValue().getIsInDanger() ? 1 : -1;
+            addClause(new int[] { danger * newVar });
         }
     }
 

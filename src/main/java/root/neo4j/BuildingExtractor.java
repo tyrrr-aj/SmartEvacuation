@@ -2,11 +2,8 @@ package root.neo4j;
 
 import com.google.common.collect.Maps;
 import org.javatuples.Pair;
-import org.javatuples.Triplet;
 import root.geometry.Point;
-import root.models.Building;
-import root.models.ConnectionDirection;
-import root.models.Floor;
+import root.models.*;
 import root.neo4j.corridors.CorridorSplitter;
 
 import java.util.*;
@@ -21,6 +18,7 @@ public class BuildingExtractor {
     private Map<String, Point> doorCoords;
     private Map<Integer, List<Pair<Integer, Point>>> areasWithNeighsAndDoors;
     private Map<Integer, List<ConnectionResult>> areasWithConnections;
+    private List<InterfloorConnectionResult> interfloorConnections;
     private List<ConnectionResult> connections;
     private List<Integer> areasWithExit;
     private List<Integer> corridors;
@@ -37,6 +35,7 @@ public class BuildingExtractor {
         doorCoords = extractDoors();
         areasWithNeighsAndDoors = extractNeighbours();
         areasWithExit = extractExits();
+        interfloorConnections = extractInterfloorConnections();
 
         connections = new LinkedList<>();
 
@@ -51,6 +50,7 @@ public class BuildingExtractor {
         addAreasToBuilding();
         addConnectionsToBuilding();
         addExitsToBuilding();
+        addInterfloorConnectionsToBuilding();
 
         return building;
     }
@@ -95,6 +95,10 @@ public class BuildingExtractor {
 
     private List<Integer> extractExits() {
         return neo4jDriver.readAreasWithExits();
+    }
+
+    private List<InterfloorConnectionResult> extractInterfloorConnections() {
+        return neo4jDriver.readInterfloorConnections();
     }
 
     private Map<Integer, List<ConnectionResult>> computeConnections() {
@@ -186,7 +190,15 @@ public class BuildingExtractor {
         areasWithExit.forEach(areaId -> getFloorOfAreaById(areaId).updateArea(areaId, false, true, ConnectionDirection.NONE));
     }
 
+    private void addInterfloorConnectionsToBuilding() {
+        interfloorConnections.forEach(conn -> {
+            getAreaById(conn.getFirstAreaId()).addOtherFloorNeighbour(new InterfloorNeighbour(getAreaById(conn.getSecondAreaId()), conn.getDirection()));
+        });
+    }
+
     private Floor getFloorOfAreaById(int id) {
         return floors.get(areasByName.get(id).getFloorId());
     }
+
+    private Area getAreaById(int id) { return getFloorOfAreaById(id).getAreas().get(id); }
 }

@@ -3,8 +3,10 @@ package root.ui;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.paint.Color;
+import root.models.Area;
 import root.models.Building;
 import root.models.ConnectionDirection;
+import root.models.VerticalDirection;
 import root.solver.EvacuationSolver;
 import root.solver.Formula;
 
@@ -36,7 +38,7 @@ public class EvacuationPathCreator {
             evacuationSolver = new EvacuationSolver(formula);
             evacuationSolver.solve();
             evacuationSolver.printEvacuationPlan();
-            formula.print();
+//            formula.print();
             updateSigns(scene);
     }
 
@@ -46,7 +48,7 @@ public class EvacuationPathCreator {
             var entryList = new ArrayList<Map.Entry>();
 
             if(building.getFloors().get(this.floorNumber).getAreas().get(entry.getKey()).isContainsExit()) {
-                entryList.add(entry("E", setLabelForNeighbour(building.getFloors().get(this.floorNumber).getAreas().get(entry.getKey()).getExitDirection())));
+                entryList.add(entry("E", setLabelForNeighbour(building.getFloors().get(this.floorNumber).getAreas().get(entry.getKey()))));
             }
 
             var neighbour = building.getFloors().get(this.floorNumber).getNeighbours().get(entry.getKey());
@@ -57,7 +59,7 @@ public class EvacuationPathCreator {
             entryList.add(entry("S", "S"));
 
             for (var e : entryList) {
-                System.out.println(e.getKey().toString() + ", " + e.getValue().toString());
+//                System.out.println(e.getKey().toString() + ", " + e.getValue().toString());
                 map.put(e.getKey().toString(), e.getValue().toString());
             }
             allActions.put(entry.getKey(), map);
@@ -83,6 +85,28 @@ public class EvacuationPathCreator {
         return sign;
     }
 
+    private String setLabelForNeighbour(VerticalDirection direction) {
+        String sign;
+        switch (direction) {
+            case UP:
+                sign = "U";
+                break;
+            default:
+                sign = "D";
+                break;
+        }
+        return sign;
+    }
+
+    private String setLabelForNeighbour(Area area) {
+        if (area.getExitDirection() != null) {
+            return setLabelForNeighbour(area.getExitDirection());
+        }
+        else {
+            return setLabelForNeighbour(area.getVerticalExitDirection());
+        }
+    }
+
     private void updateSigns(Scene scene) {
         System.out.println("UPDATEEE");
         for (var area : building.getFloors().get(this.floorNumber).getAreas().values()) {
@@ -93,7 +117,7 @@ public class EvacuationPathCreator {
                 label.setStyle("-fx-font-size: 32px");
             }
 
-            if(!area.isInDanger() && !area.isContainsExit()) {
+            if(!area.getIsInDanger() && !area.isContainsExit()) {
                 label.setTextFill(Color.web("#000000", 1));
             }
         }

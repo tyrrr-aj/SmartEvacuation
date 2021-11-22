@@ -5,6 +5,8 @@ import org.neo4j.driver.*;
 import org.neo4j.driver.Record;
 import root.config.Neo4jConfig;
 import root.geometry.Point;
+import root.models.InterfloorConnectionResult;
+import root.models.VerticalDirection;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -82,11 +84,7 @@ public class Neo4jDriver implements AutoCloseable {
 
     private String areasWithExitQuery() {
         return "MATCH (s:IfcSpace)--(:IfcRelSpaceBoundary)--(:IfcDoor)--(:IfcRelDefinesByProperties)--(:IfcPropertySet {Name:'Pset_DoorCommon'})--(e:IfcPropertySingleValue {Name:'IsExternal', NominalValue:'True'})\n" +
-                "RETURN s.Name\n" +
-                "UNION\n" +
-                "MATCH (s1:IfcSpace)--(:IfcRelSpaceBoundary {PhysicalOrVirtualBoundary:'VIRTUAL'})--(:IfcVirtualElement)--(:IfcRelSpaceBoundary)--(s2:IfcSpace)\n" +
-                "UNWIND [s1, s2] as s\n" +
-                "RETURN s.Name";
+                "RETURN s.Name\n";
     }
 
     public List<Integer> readAreasWithExits() {
@@ -100,6 +98,31 @@ public class Neo4jDriver implements AutoCloseable {
                 roomsWithExits.add(Integer.valueOf(values.get(0).asString()));
             }
             return roomsWithExits;
+        }
+    }
+
+    private String interfloorConnectionsQuery() {
+        return "MATCH (storey1:IfcBuildingStorey) <-[:RelatingObject]- (:IfcRelAggregates) -[:RelatedObjects]-> (s1:IfcSpace) " +
+                "-- (:IfcRelSpaceBoundary {PhysicalOrVirtualBoundary:'VIRTUAL'}) -- (:IfcVirtualElement) -- (:IfcRelSpaceBoundary)" +
+                " -- (s2:IfcSpace) <-[:RelatedObjects]- (:IfcRelAggregates) -[:RelatingObject]-> (storey2:IfcBuildingStorey)\n" +
+                "RETURN s1.Name, s2.Name, storey1.Elevation < storey2.Elevation";
+    }
+
+    public List<InterfloorConnectionResult> readInterfloorConnections() {
+        try (Session session = driver.session(configWithDb))
+        {
+            var result = session.run(interfloorConnectionsQuery());
+            var interfloorConnectionResults = new ArrayList<InterfloorConnectionResult>();
+            while(result.hasNext()) {
+                var rs = result.next();
+                var values = rs.values();
+                interfloorConnectionResults.add(new InterfloorConnectionResult(
+                        Integer.parseInt(values.get(0).asString()),
+                        Integer.parseInt(values.get(1).asString()),
+                        values.get(2).asBoolean() ? VerticalDirection.UP : VerticalDirection.DOWN
+                ));
+            }
+            return interfloorConnectionResults;
         }
     }
 

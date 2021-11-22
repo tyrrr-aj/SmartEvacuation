@@ -22,15 +22,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class BuildingCreator {
-    private Scene scene;
-    private Building building;
+    private final Scene scene;
+    private final Building building;
     private int startColumn = 0;
     private int startRow = 0;
-    private int floorNumber = 0;
+    private int floorNumber;
 
     public BuildingCreator(Scene scene, Building building) {
         this.scene = scene;
         this.building = building;
+        floorNumber = building.getLowestFloorIdWithDirectExit();
     }
 
     public void init() throws Exception {
@@ -106,7 +107,7 @@ public class BuildingCreator {
         Integer clickedId = Integer.parseInt(event.getPickResult().getIntersectedNode().getId().split("-")[1]);
         Label label = (Label) scene.lookup("#label-" + clickedId);
 
-        if(building.getFloors().get(this.floorNumber).getAreas().get(clickedId).isInDanger()){
+        if(building.getFloors().get(this.floorNumber).getAreas().get(clickedId).getIsInDanger()){
             label.setTextFill(Color.web("#000000", 1));
             building.getFloors().get(this.floorNumber).getAreas().get(clickedId).setIsInDanger(false);
             System.out.println(clickedId + " - no danger");
@@ -125,7 +126,7 @@ public class BuildingCreator {
 
         Font font = new Font(16);
         label.setFont(font);
-        if(building.getFloors().get(this.floorNumber).getAreas().get(roomId).isInDanger()) {
+        if(building.getFloors().get(this.floorNumber).getAreas().get(roomId).getIsInDanger()) {
             label.setTextFill(Color.web("#ff0000", 1));
         }
         gridPane.add(label, columnIndex, rowIndex);
